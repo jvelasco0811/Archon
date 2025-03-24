@@ -180,9 +180,33 @@ def environment_tab():
                 "AWS Region",
                 options=aws_regions,
                 index=aws_regions.index(
-                    profile_env_vars.get("AWS_REGION", "us-west-2")
+                    profile_env_vars.get("AWS_REGION", "us-east-1")
                 ),
                 key="aws_region_selector",
+            )
+
+            # AWS Credentials
+            st.text_input(
+                "AWS Access Key ID",
+                value=profile_env_vars.get("AWS_ACCESS_KEY_ID", ""),
+                key="aws_access_key_id",
+                type="password",
+            )
+
+            st.text_input(
+                "AWS Secret Access Key",
+                value=profile_env_vars.get("AWS_SECRET_ACCESS_KEY", ""),
+                key="aws_secret_access_key",
+                type="password",
+            )
+
+            # Optional AWS Session Token
+            st.text_input(
+                "AWS Session Token (optional)",
+                value=profile_env_vars.get("AWS_SESSION_TOKEN", ""),
+                key="aws_session_token",
+                type="password",
+                help="Required only when using temporary credentials",
             )
 
             # Bedrock model selection
@@ -219,21 +243,6 @@ def environment_tab():
                 "Model",
                 options=bedrock_models[selected_model_family],
                 key="bedrock_model",
-            )
-
-            # AWS Credentials
-            st.text_input(
-                "AWS Access Key ID",
-                value=profile_env_vars.get("AWS_ACCESS_KEY_ID", ""),
-                key="aws_access_key_id",
-                type="password",
-            )
-
-            st.text_input(
-                "AWS Secret Access Key",
-                value=profile_env_vars.get("AWS_SECRET_ACCESS_KEY", ""),
-                key="aws_secret_access_key",
-                type="password",
             )
 
     # Update session state if provider changed
