@@ -10,10 +10,9 @@ import httpx
 from typing import Optional, List, Dict, Any
 
 from pydantic_ai import Agent, ModelRetry, RunContext
-from pydantic_ai.models.anthropic import AnthropicModel
-from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.models.bedrock import BedrockConverseModel
 from pydantic_ai.providers.bedrock import BedrockProvider
+from pydantic_ai.models.openai import OpenAIModel
 from openai import AsyncOpenAI
 from supabase import Client
 
@@ -29,29 +28,32 @@ from archon.agent_tools import (
 
 load_dotenv()
 
-provider = get_env_var("LLM_PROVIDER") or "OpenAI"
+provider = get_env_var("PROVIDER") or "OpenAI"
 llm = get_env_var("PRIMARY_MODEL") or "gpt-4o-mini"
 base_url = get_env_var("BASE_URL") or "https://api.openai.com/v1"
 api_key = get_env_var("LLM_API_KEY") or "no-llm-api-key-provided"
-aws_region = get_env_var("AWS_REGION") or "us-east-1"
+aws_region = get_env_var("AWS_REGION")
 aws_access_key = get_env_var("AWS_ACCESS_KEY_ID")
 aws_secret_key = get_env_var("AWS_SECRET_ACCESS_KEY")
+aws_secret_key = get_env_var("AWS_SECRET_ACCESS_KEY")
+aws_session_token = get_env_var("AWS_SESSION_TOKEN")
 
 
 def get_model():
-    if provider == "Anthropic":
-        return AnthropicModel(llm, api_key=api_key)
-    elif provider == "Bedrock":
+    if provider == "Bedrock":
+        bedrock_provider_args = {
+            "region_name": aws_region,
+            "aws_access_key_id": aws_access_key,
+            "aws_secret_access_key": aws_secret_key,
+        }
+        if aws_session_token:
+            bedrock_provider_args["aws_session_token"] = aws_session_token
         return BedrockConverseModel(
             llm,  # e.g., 'anthropic.claude-3-sonnet-20240229-v1:0'
-            provider=BedrockProvider(
-                region_name=aws_region,
-                aws_access_key_id=aws_access_key,
-                aws_secret_access_key=aws_secret_key,
-            ),
+            provider=BedrockProvider(**bedrock_provider_args),
         )
     else:  # Default to OpenAI
-        return OpenAIModel(llm, base_url=base_url, api_key=api_key)
+        return OpenAIModel(llm, provider="openai")
 
 
 model = get_model()
