@@ -1,5 +1,6 @@
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.models.bedrock import BedrockConverseModel
 from pydantic_ai import Agent, RunContext
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
@@ -42,12 +43,17 @@ api_key = get_env_var("LLM_API_KEY") or "no-llm-api-key-provided"
 
 is_anthropic = provider == "Anthropic"
 is_openai = provider == "OpenAI"
+is_bedrock = provider == "Bedrock"
 
 reasoner_llm_model_name = get_env_var("REASONER_MODEL") or "o3-mini"
 reasoner_llm_model = (
     AnthropicModel(reasoner_llm_model_name, provider="anthropic")
     if is_anthropic
-    else OpenAIModel(reasoner_llm_model_name, provider="openai")
+    else (
+        OpenAIModel(reasoner_llm_model_name, provider="openai")
+        if is_openai
+        else BedrockConverseModel(reasoner_llm_model_name, provider="bedrock")
+    )
 )
 
 reasoner = Agent(
@@ -59,7 +65,11 @@ primary_llm_model_name = get_env_var("PRIMARY_MODEL") or "gpt-4o-mini"
 primary_llm_model = (
     AnthropicModel(primary_llm_model_name, provider="anthropic")
     if is_anthropic
-    else OpenAIModel(primary_llm_model_name, provider="openai")
+    else (
+        OpenAIModel(primary_llm_model_name, provider="openai")
+        if is_openai
+        else BedrockConverseModel(primary_llm_model_name, provider="bedrock")
+    )
 )
 
 router_agent = Agent(
@@ -140,9 +150,12 @@ async def coder_agent(state: AgentState, writer):
     for message_row in state["messages"]:
         message_history.extend(ModelMessagesTypeAdapter.validate_json(message_row))
 
-    # The prompt either needs to be the user message (initial agent request or feedback)
-    # or the refined prompt/tools/agent if we are in that stage of the agent creation process
-    if "refined_prompt" in state and state["refined_prompt"]:
+    prompt = (
+        state["refined_prompt"]
+        if "refined_prompt" in state and state["refined_prompt"]
+        else state["latest_user_message"]
+    )
+    if state.get("refined_prompt"):
         prompt = f"""
         I need you to refine the agent you created. 
         
@@ -157,28 +170,21 @@ async def coder_agent(state: AgentState, writer):
 
         Output any changes necessary to the agent code based on these refinements.
         """
-    else:
-        prompt = state["latest_user_message"]
 
-    # Run the agent in a stream
-    if not is_openai:
+    # Handle streaming for different providers
+    if is_openai or is_bedrock:
+        async with pydantic_ai_coder.run_stream(
+            state["latest_user_message"], deps=deps, message_history=message_history
+        ) as result:
+            async for chunk in result.stream_text(delta=True):
+                writer(chunk)
+    else:
         writer = get_stream_writer()
         result = await pydantic_ai_coder.run(
             prompt, deps=deps, message_history=message_history
         )
         writer(result.data)
-    else:
-        async with pydantic_ai_coder.run_stream(
-            state["latest_user_message"], deps=deps, message_history=message_history
-        ) as result:
-            # Stream partial text as it arrives
-            async for chunk in result.stream_text(delta=True):
-                writer(chunk)
 
-    # print(ModelMessagesTypeAdapter.validate_json(result.new_messages_json()))
-
-    # Add the new conversation history (including tool calls)
-    # Reset the refined properties in case they were just used to refine the agent
     return {
         "messages": [result.new_messages_json()],
         "refined_prompt": "",
