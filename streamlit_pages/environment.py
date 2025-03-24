@@ -195,6 +195,10 @@ def environment_tab():
                     "anthropic.claude-3-5-haiku-20241022-v1:0",
                     "us.anthropic.claude-3-5-haiku-20241022-v1:0",
                 ],
+                "Embeding": [
+                    "amazon.titan-embed-text-v1",
+                    "amazon.titan-embed-text-v2:0",
+                ],
                 "Nova": [
                     "us.amazon.nova-pro-v1:0",
                     "us.amazon.nova-lite-v1:0",
