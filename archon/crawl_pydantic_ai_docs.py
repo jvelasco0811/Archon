@@ -40,8 +40,8 @@ BASE_URL = get_env_var("BASE_URL") or "https://api.openai.com/v1"
 API_KEY = get_env_var("LLM_API_KEY") or "no-api-key-provided"
 
 # AWS configuration for Bedrock
-AWS_PROFILE = get_env_var("AWS_PROFILE")
 AWS_REGION = get_env_var("AWS_REGION") or "us-west-2"
+
 
 # Initialize clients based on provider
 embedding_client = None
@@ -49,7 +49,12 @@ llm_client = None
 bedrock_runtime = None
 
 if EMBEDDING_PROVIDER == "Bedrock" or LLM_PROVIDER == "Bedrock":
-    session = boto3.Session(profile_name=AWS_PROFILE, region_name=AWS_REGION)
+    session = boto3.Session(
+        region_name=AWS_REGION,
+        aws_access_key_id=get_env_var("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=get_env_var("AWS_SECRET_ACCESS_KEY"),
+        aws_session_token=get_env_var("AWS_SESSION_TOKEN"),
+    )
     bedrock_runtime = session.client("bedrock-runtime")
     if EMBEDDING_PROVIDER == "Bedrock":
         EMBEDDING_DIMENSION = 1024  # Titan embedding dimension

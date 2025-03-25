@@ -43,15 +43,20 @@ model = None
 if provider == "Anthropic":
     model = AnthropicModel(llm, provider=AnthropicProvider(api_key=api_key))
 elif provider == "Bedrock":
-    model = BedrockConverseModel(
-        llm,
-        provider=BedrockProvider(
+    try:
+        bedrock_provider = BedrockProvider(
             region_name=aws_region,
             aws_access_key_id=get_env_var("AWS_ACCESS_KEY_ID"),
             aws_secret_access_key=get_env_var("AWS_SECRET_ACCESS_KEY"),
             aws_session_token=get_env_var("AWS_SESSION_TOKEN"),
-        ),
-    )
+        )
+        model = BedrockConverseModel(llm, provider=bedrock_provider)
+    except Exception as e:
+        print(f"Failed to initialize Bedrock provider: {e}")
+        # Fallback to OpenAI
+        model = OpenAIModel(
+            llm, provider=OpenAIProvider(base_url=base_url, api_key=api_key)
+        )
 else:  # Default to OpenAI
     model = OpenAIModel(
         llm, provider=OpenAIProvider(base_url=base_url, api_key=api_key)

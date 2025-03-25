@@ -33,7 +33,6 @@ async def get_bedrock_client() -> BedrockRuntimeClient:
 
     if _bedrock_client is None:
         session = Session(
-            profile_name=get_env_var("AWS_PROFILE"),
             region_name=aws_region,
             aws_access_key_id=get_env_var("AWS_ACCESS_KEY_ID"),
             aws_secret_access_key=get_env_var("AWS_SECRET_ACCESS_KEY"),
