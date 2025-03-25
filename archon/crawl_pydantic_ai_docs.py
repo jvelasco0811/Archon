@@ -270,6 +270,7 @@ async def get_title_and_summary(chunk: str, url: str) -> Dict[str, str]:
                 body=request_body,
             )
             response_body = json.loads(response["body"].read().decode("utf-8"))
+            print(json.loads(response_body["content"][0]["text"]))
             return json.loads(response_body["content"][0]["text"])
         else:  # OpenAI
             response = await llm_client.chat.completions.create(
@@ -357,6 +358,7 @@ async def insert_chunk(chunk: ProcessedChunk):
             "embedding": chunk.embedding,
         }
 
+        print("insert_chunk" + str(data))
         result = supabase.table("site_pages").insert(data).execute()
         print(f"Inserted chunk {chunk.chunk_number} for {chunk.url}")
         return result

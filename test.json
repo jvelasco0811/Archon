@@ -1,0 +1,17 @@
+{
+    "url": "https://ai.pydantic.dev/dependencies/",
+    "chunk_number": 4,
+    "title": "Dependency Overriding in AI Pydantic Dependencies",
+    "summary": "This documentation chunk demonstrates how to override dependencies in a Python AI application, showing the process of customizing system prompts, creating test dependencies, and using dependency overrides in testing scenarios. The example includes creating a test dependency class, overriding the system prompt factory, and applying the override in application code.",
+    "content": "1. Define a method on the dependency to make the system prompt easier to customise.\n      2. Call the system prompt factory from within the system prompt function.\n      3. Application code that calls the agent, in a real application this might be an API endpoint.\n      4. Call the agent from within the application code, in a real application this call might be deep within a call stack. Note `app_deps` here will NOT be used when deps are overridden.\n_(This example is complete, it can be run \"as is\")_ test_joke_app.py\n        \n                from joke_app import MyDeps, application_code, joke_agent\n        \n        \n        class TestMyDeps(MyDeps):  # (1)!\n            async def system_prompt_factory(self) -> str:\n                return 'test prompt'\n        \n        \n        async def test_application_code():\n            test_deps = TestMyDeps('test_key', None)  # (2)!\n            with joke_agent.override(deps=test_deps):  # (3)!\n                joke = await application_code('Tell me a joke.')  # (4)!\n            assert joke.startswith('Did you hear about the toothpaste scandal?')\n        \n\n      1. Define a subclass of `MyDeps` in tests to customise the system prompt factory.\n      2. Create an instance of the test dependency, we don't need to pass an `http_client` here as it's not used.\n      3. Override the dependencies of the agent for the duration of the `with` block, `test_deps` will be used when the agent is run.\n      4. Now we can safely call our application code, the agent will use the overridden dependencies.\nExamples The following examples demonstrate how to use dependencies in PydanticAI:\n      * [Weather Agent](../examples/weather-agent/)\n      * [SQL Generation](../examples/sql-gen/)\n      * [RAG](../examples/rag/)\nÂ© Pydantic Services Inc. 2024 to present",
+    "metadata": {
+        "source": "pydantic_ai_docs",
+        "chunk_size": 1802,
+        "crawled_at": "2025-03-25T20:09:11.234695+00:00",
+        "url_path": "/dependencies/",
+        "embedding_provider": "Bedrock",
+        "embedding_model": "amazon.titan-embed-text-v2:0",
+        "embedding_dimension": 1024
+    },
+    "embedding": []
+}
