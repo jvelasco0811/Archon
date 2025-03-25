@@ -39,22 +39,9 @@ def write_to_log(message: str):
         f.write(log_entry)
 
 
-def validate_aws_credentials() -> bool:
-    """Validate AWS credentials for Bedrock."""
-    required_vars = ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_REGION"]
-    return all(os.getenv(var) for var in required_vars)
-
-
 def get_env_var(name: str) -> Optional[str]:
     """Get environment variable with validation."""
     value = os.getenv(name)
-
-    if name == "LLM_PROVIDER" and value == "Bedrock":
-        if not validate_aws_credentials():
-            raise ValueError(
-                "AWS credentials not found. Please set AWS_ACCESS_KEY_ID, "
-                "AWS_SECRET_ACCESS_KEY, and AWS_REGION environment variables."
-            )
 
     return value
 
