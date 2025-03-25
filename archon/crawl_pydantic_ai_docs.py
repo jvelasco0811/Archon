@@ -1,3 +1,5 @@
+from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
+from utils.utils import get_env_var, get_clients
 import os
 import sys
 import asyncio
@@ -19,9 +21,7 @@ import html2text
 
 # Add the parent directory to sys.path to allow importing from the parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.utils import get_env_var, get_clients
 
-from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
 
 load_dotenv()
 
@@ -247,15 +247,21 @@ async def get_title_and_summary(chunk: str, url: str) -> Dict[str, str]:
                 {
                     "anthropic_version": "bedrock-2023-05-31",
                     "max_tokens": 1000,
+                    "system": system_prompt,
                     "messages": [
-                        {"role": "system", "content": system_prompt},
                         {
                             "role": "user",
-                            "content": f"URL: {url}\n\nContent:\n{chunk[:1000]}...",
-                        },
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": f"URL: {url}\n\nContent:\n{chunk[:1000]}..."
+                                }
+                            ]
+                        }
                     ],
                     "temperature": 0.7,
-                    "response_format": {"type": "json_object"},
+                    "top_p": 0.999,
+                    "top_k": 250,
                 }
             )
 
@@ -340,6 +346,7 @@ async def process_chunk(chunk: str, chunk_number: int, url: str) -> ProcessedChu
 async def insert_chunk(chunk: ProcessedChunk):
     """Insert a processed chunk into Supabase."""
     try:
+
         data = {
             "url": chunk.url,
             "chunk_number": chunk.chunk_number,
@@ -413,7 +420,8 @@ def fetch_url_content(url: str) -> str:
         markdown = html_converter.handle(response.text)
 
         # Clean up the markdown
-        markdown = re.sub(r"\n{3,}", "\n\n", markdown)  # Remove excessive newlines
+        # Remove excessive newlines
+        markdown = re.sub(r"\n{3,}", "\n\n", markdown)
 
         return markdown
     except Exception as e:
@@ -488,7 +496,8 @@ async def crawl_parallel_with_requests(
 
     # Process all URLs in parallel with limited concurrency
     if tracker:
-        tracker.log(f"Processing {len(urls)} URLs with concurrency {max_concurrent}")
+        tracker.log(
+            f"Processing {len(urls)} URLs with concurrency {max_concurrent}")
         # Ensure UI gets updated
         if tracker.progress_callback:
             tracker.progress_callback(tracker.get_status())
