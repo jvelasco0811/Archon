@@ -127,11 +127,13 @@ def environment_tab():
         "Anthropic": "https://api.anthropic.com/v1",
         "OpenRouter": "https://openrouter.ai/api/v1",
         "Ollama": "http://localhost:11434/v1",
+        "Bedrock": None,  # Bedrock doesn't use a base URL
     }
 
     embedding_default_urls = {
         "OpenAI": "https://api.openai.com/v1",
         "Ollama": "http://localhost:11434/v1",
+        "Bedrock": None,  # Bedrock doesn't use a base URL
     }
 
     # Initialize session state for provider selections if not already set
@@ -147,7 +149,7 @@ def environment_tab():
     st.subheader("1. Select Your LLM Provider")
 
     # LLM Provider dropdown
-    llm_providers = ["OpenAI", "Anthropic", "OpenRouter", "Ollama"]
+    llm_providers = ["OpenAI", "Anthropic", "OpenRouter", "Ollama", "Bedrock"]
 
     selected_llm_provider = st.selectbox(
         "LLM Provider",
@@ -169,7 +171,7 @@ def environment_tab():
     st.subheader("2. Select Your Embedding Model Provider")
 
     # Embedding Provider dropdown
-    embedding_providers = ["OpenAI", "Ollama"]
+    embedding_providers = ["OpenAI", "Ollama", "Bedrock"]
 
     selected_embedding_provider = st.selectbox(
         "Embedding Provider",
@@ -198,37 +200,60 @@ def environment_tab():
         updated_values["LLM_PROVIDER"] = selected_llm_provider
         updated_values["EMBEDDING_PROVIDER"] = selected_embedding_provider
 
+        # AWS Configuration Section (shown only when Bedrock is selected)
+        if (
+            selected_llm_provider == "Bedrock"
+            or selected_embedding_provider == "Bedrock"
+        ):
+            st.subheader("AWS Configuration")
+
+            # AWS Region
+            aws_region_help = "AWS Region for Bedrock services\n\n" "Example: us-west-2"
+            aws_region = st.text_input(
+                "AWS_REGION:",
+                value=profile_env_vars.get("AWS_REGION", "us-west-2"),
+                help=aws_region_help,
+                key="input_AWS_REGION",
+            )
+            updated_values["AWS_REGION"] = aws_region
+
+            # AWS Profile
+            aws_profile_help = (
+                "AWS Profile name from your AWS credentials\n\n" "Example: jaime.dev"
+            )
+            aws_profile = st.text_input(
+                "AWS_PROFILE:",
+                value=profile_env_vars.get("AWS_PROFILE", "jaime.dev"),
+                help=aws_profile_help,
+                key="input_AWS_PROFILE",
+            )
+            updated_values["AWS_PROFILE"] = aws_profile
+
         # 1. Large Language Models Section - Settings
         st.subheader("LLM Settings")
 
-        # BASE_URL
-        base_url_help = (
-            "Base URL for your LLM provider:\n\n"
-            + "OpenAI: https://api.openai.com/v1\n\n"
-            + "Anthropic: https://api.anthropic.com/v1\n\n"
-            + "OpenRouter: https://openrouter.ai/api/v1\n\n"
-            + "Ollama: http://localhost:11434/v1"
-        )
+        # BASE_URL (only shown for non-Bedrock providers)
+        if selected_llm_provider != "Bedrock":
+            base_url_help = (
+                "Base URL for your LLM provider:\n\n"
+                + "OpenAI: https://api.openai.com/v1\n\n"
+                + "Anthropic: https://api.anthropic.com/v1\n\n"
+                + "OpenRouter: https://openrouter.ai/api/v1\n\n"
+                + "Ollama: http://localhost:11434/v1"
+            )
 
-        # Get current BASE_URL or use default for selected provider
-        current_base_url = profile_env_vars.get(
-            "BASE_URL", llm_default_urls.get(selected_llm_provider, "")
-        )
+            # Get current BASE_URL or use default for selected provider
+            current_base_url = profile_env_vars.get(
+                "BASE_URL", llm_default_urls.get(selected_llm_provider, "")
+            )
 
-        # If provider changed or BASE_URL is empty, use the default
-        if (
-            not current_base_url
-            or profile_env_vars.get("LLM_PROVIDER", "") != selected_llm_provider
-        ):
-            current_base_url = llm_default_urls.get(selected_llm_provider, "")
-
-        llm_base_url = st.text_input(
-            "BASE_URL:",
-            value=current_base_url,
-            help=base_url_help,
-            key="input_BASE_URL",
-        )
-        updated_values["BASE_URL"] = llm_base_url
+            base_url = st.text_input(
+                "BASE_URL:",
+                value=current_base_url,
+                help=base_url_help,
+                key="input_BASE_URL",
+            )
+            updated_values["BASE_URL"] = base_url
 
         # API_KEY
         api_key_help = (
@@ -373,14 +398,22 @@ def environment_tab():
 
         # EMBEDDING_MODEL
         embedding_model_help = (
-            "Embedding model you want to use\n\n"
-            + "Example for Ollama: nomic-embed-text\n\n"
-            + "Example for OpenAI: text-embedding-3-small"
+            "Embedding model to use:\n\n"
+            + "OpenAI: text-embedding-3-small\n\n"
+            + "Ollama: nomic-embed-text\n\n"
+            + "Bedrock: amazon.titan-embed-text-v2:0"
         )
+
+        # Set default embedding model based on provider
+        default_embedding_model = "text-embedding-3-small"
+        if selected_embedding_provider == "Ollama":
+            default_embedding_model = "nomic-embed-text"
+        elif selected_embedding_provider == "Bedrock":
+            default_embedding_model = "amazon.titan-embed-text-v2:0"
 
         embedding_model = st.text_input(
             "EMBEDDING_MODEL:",
-            value=profile_env_vars.get("EMBEDDING_MODEL", ""),
+            value=profile_env_vars.get("EMBEDDING_MODEL", default_embedding_model),
             help=embedding_model_help,
             key="input_EMBEDDING_MODEL",
         )

@@ -154,7 +154,7 @@ def database_tab(supabase):
         "Embedding Dimensions",
         options=[1536, 768, 384, 1024],
         index=0,
-        help="Use 1536 for OpenAI embeddings, 768 for nomic-embed-text with Ollama, or select another dimension based on your model.",
+        help="Use 1536 for OpenAI embeddings, 768 for nomic-embed-text with Ollama, 1024 for amazon.titan-embed-text-v2:0 or select another dimension based on your model.",
     )
 
     # Get the SQL with the selected vector dimensions
