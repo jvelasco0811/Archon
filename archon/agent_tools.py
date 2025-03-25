@@ -5,7 +5,8 @@ import sys
 import os
 import json
 import boto3
-from botocore.client import BaseClient
+from boto3.session import Session
+from mypy_boto3_bedrock_runtime import BedrockRuntimeClient
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.utils import get_env_var
@@ -16,27 +17,52 @@ embedding_provider = get_env_var("EMBEDDING_PROVIDER") or "OpenAI"
 aws_region = get_env_var("AWS_REGION") or "us-west-2"
 EMBEDDING_DIMENSIONS = {"OpenAI": 1536, "Bedrock": 1024}
 
-
-async def get_bedrock_client() -> BaseClient:
-    """Initialize and return a Bedrock client."""
-    session = boto3.Session(
-        profile_name=get_env_var("AWS_PROFILE"),
-        region_name=aws_region,
-        aws_access_key_id=get_env_var("AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key=get_env_var("AWS_SECRET_ACCESS_KEY"),
-        aws_session_token=get_env_var("AWS_SESSION_TOKEN"),
-    )
-    return session.client("bedrock-runtime")
+# Initialize Bedrock client at module level
+_bedrock_client: Optional[BedrockRuntimeClient] = None
 
 
-async def get_bedrock_embedding(text: str, bedrock_client: BaseClient) -> List[float]:
-    """Get embedding vector from AWS Bedrock."""
+async def get_bedrock_client() -> BedrockRuntimeClient:
+    """
+    Initialize and return a Bedrock client using boto3.
+    Uses singleton pattern to avoid multiple client instantiations.
+
+    Returns:
+        BedrockRuntimeClient: Configured Bedrock runtime client
+    """
+    global _bedrock_client
+
+    if _bedrock_client is None:
+        session = Session(
+            profile_name=get_env_var("AWS_PROFILE"),
+            region_name=aws_region,
+            aws_access_key_id=get_env_var("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=get_env_var("AWS_SECRET_ACCESS_KEY"),
+            aws_session_token=get_env_var("AWS_SESSION_TOKEN"),
+        )
+        _bedrock_client = session.client("bedrock-runtime")
+
+    return _bedrock_client
+
+
+async def get_bedrock_embedding(
+    text: str, bedrock_client: BedrockRuntimeClient
+) -> List[float]:
+    """
+    Get embedding vector from AWS Bedrock.
+
+    Args:
+        text: The text to embed
+        bedrock_client: Configured Bedrock runtime client
+
+    Returns:
+        List[float]: The embedding vector
+    """
     try:
         embedding_request = json.dumps(
             {"inputText": text, "dimensions": EMBEDDING_DIMENSIONS["Bedrock"]}
         )
         response = bedrock_client.invoke_model(
-            modelId=embedding_model, body=embedding_request
+            modelId=embedding_model, body=embedding_request.encode()
         )
         response_body = json.loads(response["body"].read().decode("utf-8"))
         return response_body["embedding"]
@@ -46,7 +72,7 @@ async def get_bedrock_embedding(text: str, bedrock_client: BaseClient) -> List[f
 
 
 async def get_embedding(
-    text: str, embedding_client: Union[AsyncOpenAI, BaseClient]
+    text: str, embedding_client: Union[AsyncOpenAI, BedrockRuntimeClient]
 ) -> List[float]:
     """
     Get embedding vector from the configured provider (OpenAI or Bedrock).
@@ -60,6 +86,8 @@ async def get_embedding(
     """
     try:
         if embedding_provider == "Bedrock":
+            if not isinstance(embedding_client, BedrockRuntimeClient):
+                embedding_client = await get_bedrock_client()
             return await get_bedrock_embedding(text, embedding_client)
 
         # OpenAI embedding
@@ -76,7 +104,9 @@ async def get_embedding(
 
 
 async def retrieve_relevant_documentation_tool(
-    supabase: Client, embedding_client: Union[AsyncOpenAI, BaseClient], user_query: str
+    supabase: Client,
+    embedding_client: Union[AsyncOpenAI, BedrockRuntimeClient],
+    user_query: str,
 ) -> str:
     """
     Retrieve relevant documentation chunks based on the query with RAG.

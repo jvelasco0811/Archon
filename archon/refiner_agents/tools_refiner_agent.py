@@ -9,7 +9,7 @@ import os
 import sys
 import json
 from typing import List, Union
-from botocore.client import BaseClient
+from mypy_boto3_bedrock_runtime import BedrockRuntimeClient
 from pydantic import BaseModel
 from pydantic_ai import Agent, ModelRetry, RunContext
 from pydantic_ai.models.anthropic import AnthropicModel
@@ -72,7 +72,7 @@ logfire.configure(send_to_logfire="if-token-present")
 class ToolsRefinerDeps:
     supabase: Client
     embedding_client: Union[
-        AsyncOpenAI, BaseClient
+        AsyncOpenAI, BedrockRuntimeClient
     ]  # Support both OpenAI and Bedrock clients
 
 
