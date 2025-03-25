@@ -260,7 +260,7 @@ async def get_title_and_summary(chunk: str, url: str) -> Dict[str, str]:
             )
 
             response = bedrock_runtime.invoke_model(
-                modelId=LLM_MODEL or "anthropic.claude-3-haiku-20240122-v1:0",
+                modelId=LLM_MODEL or "anthropic.claude-3-5-haiku-20241022-v1:0",
                 body=request_body,
             )
             response_body = json.loads(response["body"].read().decode("utf-8"))
