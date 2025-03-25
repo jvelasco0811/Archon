@@ -49,11 +49,9 @@ llm_client = None
 bedrock_runtime = None
 
 if EMBEDDING_PROVIDER == "Bedrock" or LLM_PROVIDER == "Bedrock":
+    # Initialize Bedrock client
     session = boto3.Session(
-        region_name=AWS_REGION,
-        aws_access_key_id=get_env_var("AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key=get_env_var("AWS_SECRET_ACCESS_KEY"),
-        aws_session_token=get_env_var("AWS_SESSION_TOKEN"),
+        profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
     )
     bedrock_runtime = session.client("bedrock-runtime")
     if EMBEDDING_PROVIDER == "Bedrock":

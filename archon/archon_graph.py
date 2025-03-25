@@ -8,11 +8,13 @@ from typing import TypedDict, Annotated, List, Any
 from langgraph.config import get_stream_writer
 from langgraph.types import interrupt
 from dotenv import load_dotenv
+from pydantic_ai.providers.bedrock import BedrockProvider
 from openai import AsyncOpenAI
 from supabase import Client
 import logfire
 import os
 import sys
+import boto3
 
 # Import the message classes from Pydantic AI
 from pydantic_ai.messages import ModelMessage, ModelMessagesTypeAdapter
@@ -45,6 +47,13 @@ is_anthropic = provider == "Anthropic"
 is_openai = provider == "OpenAI"
 is_bedrock = provider == "Bedrock"
 
+if is_bedrock:
+    # Initialize Bedrock client
+    session = boto3.Session(
+        profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
+    )
+    bedrock_client = session.client("bedrock-runtime")
+
 reasoner_llm_model_name = get_env_var("REASONER_MODEL") or "o3-mini"
 reasoner_llm_model = (
     AnthropicModel(reasoner_llm_model_name, provider="anthropic")
@@ -52,7 +61,10 @@ reasoner_llm_model = (
     else (
         OpenAIModel(reasoner_llm_model_name, provider="openai")
         if is_openai
-        else BedrockConverseModel(reasoner_llm_model_name, provider="bedrock")
+        else BedrockConverseModel(
+            reasoner_llm_model_name,
+            provider=BedrockProvider(bedrock_client=bedrock_client),
+        )
     )
 )
 
@@ -68,7 +80,10 @@ primary_llm_model = (
     else (
         OpenAIModel(primary_llm_model_name, provider="openai")
         if is_openai
-        else BedrockConverseModel(primary_llm_model_name, provider="bedrock")
+        else BedrockConverseModel(
+            primary_llm_model_name,
+            provider=BedrockProvider(bedrock_client=bedrock_client),
+        )
     )
 )
 

@@ -5,7 +5,6 @@ import sys
 import os
 import json
 import boto3
-from boto3.session import Session
 from mypy_boto3_bedrock_runtime import BedrockRuntimeClient
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -16,31 +15,6 @@ embedding_model = get_env_var("EMBEDDING_MODEL") or "text-embedding-3-small"
 embedding_provider = get_env_var("EMBEDDING_PROVIDER") or "OpenAI"
 aws_region = get_env_var("AWS_REGION") or "us-west-2"
 EMBEDDING_DIMENSIONS = {"OpenAI": 1536, "Bedrock": 1024}
-
-# Initialize Bedrock client at module level
-_bedrock_client: Optional[BedrockRuntimeClient] = None
-
-
-async def get_bedrock_client() -> BedrockRuntimeClient:
-    """
-    Initialize and return a Bedrock client using boto3.
-    Uses singleton pattern to avoid multiple client instantiations.
-
-    Returns:
-        BedrockRuntimeClient: Configured Bedrock runtime client
-    """
-    global _bedrock_client
-
-    if _bedrock_client is None:
-        session = Session(
-            region_name=aws_region,
-            aws_access_key_id=get_env_var("AWS_ACCESS_KEY_ID"),
-            aws_secret_access_key=get_env_var("AWS_SECRET_ACCESS_KEY"),
-            aws_session_token=get_env_var("AWS_SESSION_TOKEN"),
-        )
-        _bedrock_client = session.client("bedrock-runtime")
-
-    return _bedrock_client
 
 
 async def get_bedrock_embedding(
@@ -57,6 +31,13 @@ async def get_bedrock_embedding(
         List[float]: The embedding vector
     """
     try:
+        # Initialize Bedrock client
+        session = boto3.Session(
+            profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
+        )
+
+        bedrock_client = session.client("bedrock-runtime")
+
         embedding_request = json.dumps(
             {"inputText": text, "dimensions": EMBEDDING_DIMENSIONS["Bedrock"]}
         )
@@ -85,8 +66,7 @@ async def get_embedding(
     """
     try:
         if embedding_provider == "Bedrock":
-            if not isinstance(embedding_client, BedrockRuntimeClient):
-                embedding_client = await get_bedrock_client()
+            # Bedrock embedding
             return await get_bedrock_embedding(text, embedding_client)
 
         # OpenAI embedding

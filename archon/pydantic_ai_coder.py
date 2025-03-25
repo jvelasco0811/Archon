@@ -1,6 +1,7 @@
 from __future__ import annotations as _annotations
 
 from dataclasses import dataclass
+import boto3
 from dotenv import load_dotenv
 import logfire
 import asyncio
@@ -44,13 +45,15 @@ if provider == "Anthropic":
     model = AnthropicModel(llm, provider=AnthropicProvider(api_key=api_key))
 elif provider == "Bedrock":
     try:
-        bedrock_provider = BedrockProvider(
-            region_name=aws_region,
-            aws_access_key_id=get_env_var("AWS_ACCESS_KEY_ID"),
-            aws_secret_access_key=get_env_var("AWS_SECRET_ACCESS_KEY"),
-            aws_session_token=get_env_var("AWS_SESSION_TOKEN"),
+        # Initialize Bedrock client
+        session = boto3.Session(
+            profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
         )
-        model = BedrockConverseModel(llm, provider=bedrock_provider)
+        bedrock_client = session.client("bedrock-runtime")
+
+        model = BedrockConverseModel(
+            llm, provider=BedrockProvider(bedrock_client=bedrock_client)
+        )
     except Exception as e:
         print(f"Failed to initialize Bedrock provider: {e}")
         # Fallback to OpenAI

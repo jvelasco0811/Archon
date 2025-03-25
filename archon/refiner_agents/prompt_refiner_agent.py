@@ -1,5 +1,5 @@
 from __future__ import annotations as _annotations
-
+import boto3
 import logfire
 import os
 import sys
@@ -33,15 +33,16 @@ model = None
 if provider == "Anthropic":
     model = AnthropicModel(llm, provider=AnthropicProvider(api_key=api_key))
 elif provider == "Bedrock":
-    model = BedrockConverseModel(
-        llm,
-        provider=BedrockProvider(
-            region_name=aws_region,
-            aws_access_key_id=get_env_var("AWS_ACCESS_KEY_ID"),
-            aws_secret_access_key=get_env_var("AWS_SECRET_ACCESS_KEY"),
-            aws_session_token=get_env_var("AWS_SESSION_TOKEN"),
-        ),
+    # Initialize Bedrock client
+    session = boto3.Session(
+        profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
     )
+    bedrock_client = session.client("bedrock-runtime")
+
+    model = BedrockConverseModel(
+        llm, provider=BedrockProvider(bedrock_client=bedrock_client)
+    )
+
 else:  # Default to OpenAI
     model = OpenAIModel(
         llm, provider=OpenAIProvider(base_url=base_url, api_key=api_key)
