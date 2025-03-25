@@ -8,7 +8,8 @@ import httpx
 import os
 import sys
 import json
-from typing import List
+from typing import List, Union
+from botocore.client import BaseClient
 from pydantic import BaseModel
 from pydantic_ai import Agent, ModelRetry, RunContext
 from pydantic_ai.models.anthropic import AnthropicModel
@@ -34,11 +35,16 @@ from archon.agent_tools import (
 
 load_dotenv()
 
+# LLM Configuration
 provider = get_env_var("LLM_PROVIDER") or "OpenAI"
 llm = get_env_var("PRIMARY_MODEL") or "gpt-4o-mini"
 base_url = get_env_var("BASE_URL") or "https://api.openai.com/v1"
 api_key = get_env_var("LLM_API_KEY") or "no-llm-api-key-provided"
 aws_region = get_env_var("AWS_REGION") or "us-west-2"
+
+# Embedding Configuration
+embedding_model = get_env_var("EMBEDDING_MODEL") or "text-embedding-3-small"
+embedding_provider = get_env_var("EMBEDDING_PROVIDER") or "OpenAI"
 
 # Enhanced model initialization with Bedrock support
 model = None
@@ -59,15 +65,15 @@ else:  # Default to OpenAI
         llm, provider=OpenAIProvider(base_url=base_url, api_key=api_key)
     )
 
-embedding_model = get_env_var("EMBEDDING_MODEL") or "text-embedding-3-small"
-
 logfire.configure(send_to_logfire="if-token-present")
 
 
 @dataclass
 class ToolsRefinerDeps:
     supabase: Client
-    embedding_client: AsyncOpenAI
+    embedding_client: Union[
+        AsyncOpenAI, BaseClient
+    ]  # Support both OpenAI and Bedrock clients
 
 
 tools_refiner_agent = Agent(
@@ -84,7 +90,7 @@ async def retrieve_relevant_documentation(
     Make sure your searches always focus on implementing tools.
 
     Args:
-        ctx: The context including the Supabase client and OpenAI client
+        ctx: The context including the Supabase client and embedding client (OpenAI or Bedrock)
         query: Your query to retrieve relevant documentation for implementing tools
 
     Returns:
