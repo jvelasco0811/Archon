@@ -243,35 +243,75 @@ async def get_title_and_summary(chunk: str, url: str) -> Dict[str, str]:
     try:
         if LLM_PROVIDER == "Bedrock":
             prompt = f"{system_prompt}\n\nURL: {url}\n\nContent:\n{chunk[:1000]}..."
-            request_body = json.dumps(
-                {
-                    "anthropic_version": "bedrock-2023-05-31",
-                    "max_tokens": 1000,
-                    "system": system_prompt,
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": [
+            # request_body = json.dumps(
+            #     {
+            #         "anthropic_version": "bedrock-2023-05-31",
+            #         "max_tokens": 1000,
+            #         "system": system_prompt,
+            #         "messages": [
+            #             {
+            #                 "role": "user",
+            #                 "content": [
+            #                     {
+            #                         "type": "text",
+            #                         "text": f"URL: {url}\n\nContent:\n{chunk[:1000]}..."
+            #                     }
+            #                 ]
+            #             }
+            #         ],
+            #         "temperature": 0.7,
+            #         "top_p": 0.999,
+            #         "top_k": 250,
+            #     }
+            # )
+
+            # response = bedrock_runtime.invoke_model(
+            #     modelId=LLM_MODEL or "anthropic.claude-3-5-haiku-20241022-v1:0",
+            #     body=request_body,
+            # )
+            # response_body = json.loads(response["body"].read().decode("utf-8"))
+            # print(json.loads(response_body["content"][0]["text"]))
+            # return json.loads(response_body["content"][0]["text"])
+
+            request_body = {
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
                                 {
-                                    "type": "text",
                                     "text": f"URL: {url}\n\nContent:\n{chunk[:1000]}..."
                                 }
-                            ]
-                        }
-                    ],
-                    "temperature": 0.7,
-                    "top_p": 0.999,
-                    "top_k": 250,
+                        ]
+                    }
+                ],
+                "system": [{"text": system_prompt}],
+                "inferenceConfig": {
+                    "maxTokens": 1000,
+                    "topP": 0.9,
+                    "topK": 20,
+                    "temperature": 0.7
                 }
-            )
-
+            }
             response = bedrock_runtime.invoke_model(
-                modelId=LLM_MODEL or "anthropic.claude-3-5-haiku-20241022-v1:0",
-                body=request_body,
+                modelId="us.amazon.nova-lite-v1:0",
+                body=json.dumps(request_body),
+
             )
-            response_body = json.loads(response["body"].read().decode("utf-8"))
-            print(json.loads(response_body["content"][0]["text"]))
-            return json.loads(response_body["content"][0]["text"])
+            # print('response debug', response)
+            # Decode the response body.
+            response_body = json.loads(response["body"].read())
+            # print('response_body debug', response_body)
+            # Extract and print the response text.
+            response_text = response_body['output']['message']['content'][0]['text']
+            # If the content is wrapped in ```json, clean it up
+            if response_text.startswith('```json'):
+                response_text = response_text.replace(
+                    '```json\n', '').replace('\n```', '')
+
+            # Parse the JSON string into a dictionary
+            result = json.loads(response_text)
+            print(result)
+            return result
         else:  # OpenAI
             response = await llm_client.chat.completions.create(
                 model=LLM_MODEL,
