@@ -73,7 +73,7 @@ def intro_tab():
         Archon uses Supabase for vector storage and retrieval:
         
         1. Go to the **Database** tab
-        2. Select your embedding dimensions (1536 for OpenAI, 768 for nomic-embed-text)
+        2. Select your embedding dimensions (1536 for OpenAI, 768 for nomic-embed-text, 1024 for Bedrock Titan Embed Text v2:0)
         3. Follow the instructions to create the `site_pages` table
         
         This creates the necessary tables, indexes, and functions for vector similarity search.

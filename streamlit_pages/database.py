@@ -161,11 +161,11 @@ def database_tab(supabase):
     sql_template = load_sql_template()
 
     # Replace the vector dimensions in the SQL
-    sql = sql_template.replace("vector(1536)", f"vector({vector_dim})")
+    sql = sql_template.replace("vector(1024)", f"vector({vector_dim})")
 
     # Also update the match_site_pages function dimensions
     sql = sql.replace(
-        "query_embedding vector(1536)", f"query_embedding vector({vector_dim})"
+        "query_embedding vector(1024)", f"query_embedding vector({vector_dim})"
     )
 
     # Show the SQL
