@@ -127,13 +127,11 @@ def environment_tab():
         "Anthropic": "https://api.anthropic.com/v1",
         "OpenRouter": "https://openrouter.ai/api/v1",
         "Ollama": "http://localhost:11434/v1",
-        "Bedrock": "https://bedrock-runtime.{region}.amazonaws.com",  # Region will be configurable
     }
 
     embedding_default_urls = {
         "OpenAI": "https://api.openai.com/v1",
         "Ollama": "http://localhost:11434/v1",
-        "Bedrock": "https://bedrock-runtime.{region}.amazonaws.com",
     }
 
     # Initialize session state for provider selections if not already set
@@ -149,7 +147,7 @@ def environment_tab():
     st.subheader("1. Select Your LLM Provider")
 
     # LLM Provider dropdown
-    llm_providers = ["OpenAI", "Anthropic", "OpenRouter", "Ollama", "Bedrock"]
+    llm_providers = ["OpenAI", "Anthropic", "OpenRouter", "Ollama"]
 
     selected_llm_provider = st.selectbox(
         "LLM Provider",
@@ -162,99 +160,16 @@ def environment_tab():
         key="llm_provider_selector",
     )
 
-    # Bedrock-specific configuration
-    if selected_llm_provider == "Bedrock":
-        with st.expander("Bedrock Configuration", expanded=True):
-            # AWS Region selection
-            aws_regions = [
-                "us-east-1",
-                "us-east-2",
-                "us-west-1",
-                "us-west-2",
-                "eu-west-1",
-                "eu-central-1",
-                "ap-southeast-1",
-                "ap-northeast-1",
-            ]
-            selected_region = st.selectbox(
-                "AWS Region",
-                options=aws_regions,
-                index=aws_regions.index(
-                    profile_env_vars.get("AWS_REGION", "us-east-1")
-                ),
-                key="aws_region_selector",
-            )
-
-            # AWS Credentials
-            st.text_input(
-                "AWS Access Key ID",
-                value=profile_env_vars.get("AWS_ACCESS_KEY_ID", ""),
-                key="aws_access_key_id",
-                type="password",
-            )
-
-            st.text_input(
-                "AWS Secret Access Key",
-                value=profile_env_vars.get("AWS_SECRET_ACCESS_KEY", ""),
-                key="aws_secret_access_key",
-                type="password",
-            )
-
-            # Optional AWS Session Token
-            st.text_input(
-                "AWS Session Token (optional)",
-                value=profile_env_vars.get("AWS_SESSION_TOKEN", ""),
-                key="aws_session_token",
-                type="password",
-                help="Required only when using temporary credentials",
-            )
-
-            # Bedrock model selection
-            bedrock_models = {
-                "Claude": [
-                    "anthropic.claude-3-7-sonnet-20250219-v1:0",
-                    "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
-                    "anthropic.claude-3-5-sonnet-20241022-v2:0",
-                    "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
-                    "anthropic.claude-3-5-haiku-20241022-v1:0",
-                    "us.anthropic.claude-3-5-haiku-20241022-v1:0",
-                ],
-                "Embeding": [
-                    "amazon.titan-embed-text-v1",
-                    "amazon.titan-embed-text-v2:0",
-                ],
-                "Nova": [
-                    "us.amazon.nova-pro-v1:0",
-                    "us.amazon.nova-lite-v1:0",
-                    "us.amazon.nova-micro-v1:0",
-                ],
-                "Titan": ["amazon.titan-text-express-v1", "amazon.titan-text-lite-v1"],
-                "Llama2": ["meta.llama2-13b-chat-v1", "meta.llama2-70b-chat-v1"],
-                "AI21": ["ai21.j2-mid-v1", "ai21.j2-ultra-v1"],
-            }
-
-            selected_model_family = st.selectbox(
-                "Model Family",
-                options=list(bedrock_models.keys()),
-                key="bedrock_model_family",
-            )
-
-            selected_model = st.selectbox(
-                "Model",
-                options=bedrock_models[selected_model_family],
-                key="bedrock_model",
-            )
-
     # Update session state if provider changed
     if selected_llm_provider != st.session_state.llm_provider:
         st.session_state.llm_provider = selected_llm_provider
-        st.rerun()
+        st.rerun()  # Force a rerun to update the form
 
     # 2. Embedding Models Section - Provider Selection (outside form)
     st.subheader("2. Select Your Embedding Model Provider")
 
     # Embedding Provider dropdown
-    embedding_providers = ["OpenAI", "Ollama", "Bedrock"]
+    embedding_providers = ["OpenAI", "Ollama"]
 
     selected_embedding_provider = st.selectbox(
         "Embedding Provider",
@@ -267,36 +182,10 @@ def environment_tab():
         key="embedding_provider_selector",
     )
 
-    # Bedrock-specific configuration for embeddings
-    if selected_embedding_provider == "Bedrock":
-        with st.expander("Bedrock Embedding Configuration", expanded=True):
-            if (
-                "aws_region_selector" not in st.session_state
-            ):  # Reuse region if already selected for LLM
-                selected_region = st.selectbox(
-                    "AWS Region",
-                    options=aws_regions,
-                    index=aws_regions.index(
-                        profile_env_vars.get("AWS_REGION", "us-east-1")
-                    ),
-                    key="aws_region_selector_embedding",
-                )
-
-            bedrock_embedding_models = [
-                "amazon.titan-embed-text-v1",
-                "amazon.titan-embed-g1-text-02",
-            ]
-
-            selected_embedding_model = st.selectbox(
-                "Embedding Model",
-                options=bedrock_embedding_models,
-                key="bedrock_embedding_model",
-            )
-
     # Update session state if provider changed
     if selected_embedding_provider != st.session_state.embedding_provider:
         st.session_state.embedding_provider = selected_embedding_provider
-        st.rerun()
+        st.rerun()  # Force a rerun to update the form
 
     # 3. Set environment variables (within the form)
     st.subheader("3. Set All Environment Variables")
@@ -308,28 +197,6 @@ def environment_tab():
         # Store the selected providers in the updated values
         updated_values["LLM_PROVIDER"] = selected_llm_provider
         updated_values["EMBEDDING_PROVIDER"] = selected_embedding_provider
-
-        # Add Bedrock-specific values if selected
-        if selected_llm_provider == "Bedrock":
-            updated_values["AWS_REGION"] = selected_region
-            updated_values["AWS_ACCESS_KEY_ID"] = st.session_state.aws_access_key_id
-            updated_values["AWS_SECRET_ACCESS_KEY"] = (
-                st.session_state.aws_secret_access_key
-            )
-            updated_values["BEDROCK_MODEL_ID"] = selected_model
-
-        if selected_embedding_provider == "Bedrock":
-            updated_values["AWS_REGION"] = selected_region
-            updated_values["BEDROCK_EMBEDDING_MODEL_ID"] = selected_embedding_model
-            if (
-                selected_llm_provider != "Bedrock"
-            ):  # Only add AWS credentials if not already added
-                updated_values["AWS_ACCESS_KEY_ID"] = st.session_state.get(
-                    "aws_access_key_id", ""
-                )
-                updated_values["AWS_SECRET_ACCESS_KEY"] = st.session_state.get(
-                    "aws_secret_access_key", ""
-                )
 
         # 1. Large Language Models Section - Settings
         st.subheader("LLM Settings")

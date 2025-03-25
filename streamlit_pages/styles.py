@@ -4,11 +4,13 @@ This module contains the CSS styles for the Streamlit UI.
 
 import streamlit as st
 
+
 def load_css():
     """
     Load the custom CSS styles for the Archon UI.
     """
-    st.markdown("""
+    st.markdown(
+        """
         <style>
         :root {
             --primary-color: #00CC99;  /* Green */
@@ -91,4 +93,6 @@ def load_css():
             outline: none !important;
         }
         </style>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )

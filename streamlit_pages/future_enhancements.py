@@ -1,23 +1,27 @@
 import streamlit as st
 
+
 def future_enhancements_tab():
     # Display the future enhancements and integrations interface
     st.write("## Future Enhancements")
-    
-    st.write("Explore what's coming next for Archon - from specialized multi-agent workflows to autonomous framework learning.")
-    
+
+    st.write(
+        "Explore what's coming next for Archon - from specialized multi-agent workflows to autonomous framework learning."
+    )
+
     # Future Iterations section
     st.write("### Future Iterations")
-    
+
     # V5: Multi-Agent Coding Workflow
     with st.expander("V5: Multi-Agent Coding Workflow"):
         st.write("Specialized agents for different parts of the agent creation process")
-        
+
         # Create a visual representation of multi-agent workflow
         st.write("#### Multi-Agent Coding Architecture")
-        
+
         # Describe the parallel architecture
-        st.markdown("""
+        st.markdown(
+            """
         The V5 architecture introduces specialized parallel agents that work simultaneously on different aspects of agent creation:
         
         1. **Reasoner Agent**: Analyzes requirements and plans the overall agent architecture
@@ -28,27 +32,37 @@ def future_enhancements_tab():
            - **Model Selection Agent**: Determines the best model configuration
         3. **Final Coding Agent**: Integrates all components into a cohesive agent
         4. **Human-in-the-Loop**: Iterative refinement with the final coding agent
-        """)
-        
+        """
+        )
+
         # Display parallel agents
         st.write("#### Parallel Coding Agents")
-        
+
         col1, col2, col3, col4 = st.columns(4)
-        
+
         with col1:
-            st.info("**Prompt Engineering Agent**\n\nDesigns optimal prompts for different agent scenarios")
-        
+            st.info(
+                "**Prompt Engineering Agent**\n\nDesigns optimal prompts for different agent scenarios"
+            )
+
         with col2:
-            st.success("**Tool Definition Agent**\n\nCreates tool specifications and interfaces")
-        
+            st.success(
+                "**Tool Definition Agent**\n\nCreates tool specifications and interfaces"
+            )
+
         with col3:
-            st.warning("**Dependencies Agent**\n\nIdentifies required libraries and dependencies")
-            
+            st.warning(
+                "**Dependencies Agent**\n\nIdentifies required libraries and dependencies"
+            )
+
         with col4:
-            st.error("**Model Selection Agent**\n\nDetermines the best model configuration")
-        
+            st.error(
+                "**Model Selection Agent**\n\nDetermines the best model configuration"
+            )
+
         # Updated flow chart visualization with better colors for ovals
-        st.graphviz_chart('''
+        st.graphviz_chart(
+            """
         digraph {
             rankdir=LR;
             node [shape=box, style=filled, color=lightblue];
@@ -84,34 +98,41 @@ def future_enhancements_tab():
             Final -> Human;
             Human -> Final [label="Feedback Loop", color=red, constraint=false];
         }
-        ''')
-        
+        """
+        )
+
         st.write("#### Benefits of Parallel Agent Architecture")
-        st.markdown("""
+        st.markdown(
+            """
         - **Specialization**: Each agent focuses on its area of expertise
         - **Efficiency**: Parallel processing reduces overall development time
         - **Quality**: Specialized agents produce higher quality components
         - **Flexibility**: Easy to add new specialized agents as needed
         - **Scalability**: Architecture can handle complex agent requirements
-        """)
-    
+        """
+        )
+
     # V6: Tool Library and Example Integration
     with st.expander("V6: Tool Library and Example Integration"):
         st.write("Pre-built external tool and agent examples incorporation")
-        st.write("""
+        st.write(
+            """
             With pre-built tools, the agent can pull full functions from the tool library so it doesn't have to 
             create them from scratch. On top of that, pre-built agents will give Archon a starting point 
             so it doesn't have to build the agent structure from scratch either.
-            """)
-        
+            """
+        )
+
         st.write("#### Example Integration Configuration")
-        
+
         # Add tabs for different aspects of V6
         tool_tab, example_tab = st.tabs(["Tool Library", "Example Agents"])
-        
+
         with tool_tab:
-            st.write("##### Example Tool Library Config (could be a RAG implementation too, still deciding)")
-            
+            st.write(
+                "##### Example Tool Library Config (could be a RAG implementation too, still deciding)"
+            )
+
             sample_config = """
             {
                 "tool_library": {
@@ -151,11 +172,11 @@ def future_enhancements_tab():
                 }
             }
             """
-            
+
             st.code(sample_config, language="json")
-            
+
             st.write("##### Pydantic AI Tool Definition Example")
-            
+
             pydantic_tool_example = """
             from pydantic_ai import Agent, RunContext, Tool
             from typing import Union, List, Dict, Any
@@ -195,7 +216,7 @@ def future_enhancements_tab():
                     return f"Error retrieving weather data: {str(e)}"
             """
             st.code(pydantic_tool_example, language="python")
-            
+
             st.write("##### Tool Usage in Agent")
             tool_usage_example = """
             async def use_weather_tool(location: str) -> str:
@@ -205,10 +226,11 @@ def future_enhancements_tab():
                 return result.content
             """
             st.code(tool_usage_example, language="python")
-        
+
         with example_tab:
             st.write("##### Example Agents")
-            st.markdown("""
+            st.markdown(
+                """
             V6 will include pre-built example agents that serve as templates and learning resources. These examples will be baked directly into agent prompts to improve results and consistency.
             
             **Benefits of Example Agents:**
@@ -217,45 +239,51 @@ def future_enhancements_tab():
             - Serve as starting points that can be customized for specific needs
             - Improve consistency in agent behavior and output format
             - Reduce the learning curve for new users
-            """)
-            
+            """
+            )
+
             st.write("##### Example Agent Types")
-            
+
             example_agents = {
                 "Research Assistant": {
                     "description": "Performs comprehensive research on topics using web search and content analysis",
                     "tools": ["web_search", "web_browser", "summarization"],
-                    "example_prompt": "Research the latest advancements in quantum computing and provide a summary"
+                    "example_prompt": "Research the latest advancements in quantum computing and provide a summary",
                 },
                 "Data Analyst": {
                     "description": "Analyzes datasets, generates visualizations, and provides insights",
                     "tools": ["database_query", "data_analysis", "chart_generation"],
-                    "example_prompt": "Analyze this sales dataset and identify key trends over the past quarter"
+                    "example_prompt": "Analyze this sales dataset and identify key trends over the past quarter",
                 },
                 "Content Creator": {
                     "description": "Generates various types of content including text, images, and code",
                     "tools": ["text_generation", "image_generation", "code_generation"],
-                    "example_prompt": "Create a blog post about sustainable living with accompanying images"
+                    "example_prompt": "Create a blog post about sustainable living with accompanying images",
                 },
                 "Conversational Assistant": {
                     "description": "Engages in helpful, informative conversations with natural dialogue",
                     "tools": ["knowledge_base", "memory_management", "personalization"],
-                    "example_prompt": "I'd like to learn more about machine learning. Where should I start?"
-                }
+                    "example_prompt": "I'd like to learn more about machine learning. Where should I start?",
+                },
             }
-            
+
             # Create a table of example agents
             example_data = {
                 "Agent Type": list(example_agents.keys()),
-                "Description": [example_agents[a]["description"] for a in example_agents],
-                "Core Tools": [", ".join(example_agents[a]["tools"]) for a in example_agents]
+                "Description": [
+                    example_agents[a]["description"] for a in example_agents
+                ],
+                "Core Tools": [
+                    ", ".join(example_agents[a]["tools"]) for a in example_agents
+                ],
             }
-            
+
             st.dataframe(example_data, use_container_width=True)
-            
+
             st.write("##### Example Agent Implementation")
-            
-            st.code("""
+
+            st.code(
+                """
             # Example Weather Agent based on Pydantic AI documentation
             from pydantic_ai import Agent, RunContext
             from typing import Dict, Any
@@ -361,31 +389,37 @@ def future_enhancements_tab():
                         deps=deps
                     )
                     return result.data
-            """, language="python")
-            
-            st.info("""
+            """,
+                language="python",
+            )
+
+            st.info(
+                """
             **In-Context Learning with Examples**
             
             These example agents will be used in the system prompt for Archon, providing concrete examples that help the LLM understand the expected structure and quality of agent code. This approach leverages in-context learning to significantly improve code generation quality and consistency.
-            """)
-    
+            """
+            )
+
     # V7: LangGraph Documentation
     with st.expander("V7: LangGraph Documentation"):
         st.write("Integrating LangGraph for complex agent workflows")
-        
-        st.markdown("""
+
+        st.markdown(
+            """
         ### Pydantic AI vs LangGraph with Pydantic AI
         
         V7 will integrate LangGraph to enable complex agent workflows while maintaining compatibility with Pydantic AI agents.
         This allows for creating sophisticated multi-agent systems with well-defined state management and workflow control.
-        """)
-        
+        """
+        )
+
         col1, col2 = st.columns(2)
-        
+
         with col1:
             st.markdown("#### Pydantic AI Agent")
             st.markdown("Simple, standalone agent with tools")
-            
+
             pydantic_agent_code = """
             # Simple Pydantic AI Weather Agent
             from pydantic_ai import Agent, RunContext
@@ -428,11 +462,11 @@ def future_enhancements_tab():
                     print(result.data)
             """
             st.code(pydantic_agent_code, language="python")
-        
+
         with col2:
             st.markdown("#### LangGraph with Pydantic AI Agent")
             st.markdown("Complex workflow using Pydantic AI agents in a graph")
-            
+
             langgraph_code = """
             # LangGraph with Pydantic AI Agents
             from pydantic_ai import Agent, RunContext
@@ -539,8 +573,9 @@ def future_enhancements_tab():
                 print(result["response"])
             """
             st.code(langgraph_code, language="python")
-        
-        st.markdown("""
+
+        st.markdown(
+            """
         ### Key Benefits of Integration
         
         1. **Workflow Management**: LangGraph provides a structured way to define complex agent workflows with clear state transitions.
@@ -554,17 +589,22 @@ def future_enhancements_tab():
         5. **Parallel Execution**: LangGraph supports parallel execution of nodes, enabling more efficient processing.
         
         6. **Human-in-the-Loop**: Both frameworks support human intervention points, which can be combined for powerful interactive systems.
-        """)
-        
-        st.image("https://blog.langchain.dev/content/images/2024/01/simple_multi_agent_diagram--1-.png", 
-                 caption="Example LangGraph Multi-Agent Workflow", width=600)
-    
+        """
+        )
+
+        st.image(
+            "https://blog.langchain.dev/content/images/2024/01/simple_multi_agent_diagram--1-.png",
+            caption="Example LangGraph Multi-Agent Workflow",
+            width=600,
+        )
+
     # V8: Self-Feedback Loop
     with st.expander("V8: Self-Feedback Loop"):
         st.write("Automated validation and error correction")
-        
+
         # Create a visual feedback loop
-        st.graphviz_chart('''
+        st.graphviz_chart(
+            """
         digraph {
             rankdir=TB;
             node [shape=box, style=filled, color=lightblue];
@@ -582,10 +622,12 @@ def future_enhancements_tab():
             Fix -> Agent [label="Regenerate"];
             Validate -> Agent [label="Success", color=green];
         }
-        ''')
-        
+        """
+        )
+
         st.write("#### Validation Process")
-        st.info("""
+        st.info(
+            """
         1. Generate agent code
         2. Run automated tests
         3. Analyze test results
@@ -593,181 +635,281 @@ def future_enhancements_tab():
         5. Apply self-correction algorithms
         6. Regenerate improved code
         7. Repeat until validation passes
-        """)
-    
+        """
+        )
+
     # V9: Self Agent Execution
     with st.expander("V9: Self Agent Execution"):
         st.write("Testing and iterating on agents in an isolated environment")
-        
+
         st.write("#### Agent Execution Process")
-        
+
         execution_process = [
-            {"phase": "Sandbox Creation", "description": "Set up isolated environment using Local AI package"},
-            {"phase": "Agent Deployment", "description": "Load the generated agent into the testing environment"},
-            {"phase": "Test Execution", "description": "Run the agent against predefined scenarios and user queries"},
-            {"phase": "Performance Monitoring", "description": "Track response quality, latency, and resource usage"},
-            {"phase": "Error Detection", "description": "Identify runtime errors and logical inconsistencies"},
-            {"phase": "Iterative Improvement", "description": "Refine agent based on execution results"}
+            {
+                "phase": "Sandbox Creation",
+                "description": "Set up isolated environment using Local AI package",
+            },
+            {
+                "phase": "Agent Deployment",
+                "description": "Load the generated agent into the testing environment",
+            },
+            {
+                "phase": "Test Execution",
+                "description": "Run the agent against predefined scenarios and user queries",
+            },
+            {
+                "phase": "Performance Monitoring",
+                "description": "Track response quality, latency, and resource usage",
+            },
+            {
+                "phase": "Error Detection",
+                "description": "Identify runtime errors and logical inconsistencies",
+            },
+            {
+                "phase": "Iterative Improvement",
+                "description": "Refine agent based on execution results",
+            },
         ]
-        
+
         for i, phase in enumerate(execution_process):
             st.write(f"**{i+1}. {phase['phase']}:** {phase['description']}")
-        
+
         st.write("#### Local AI Package Integration")
-        st.markdown("""
+        st.markdown(
+            """
         The [Local AI package](https://github.com/coleam00/local-ai-packaged) provides a containerized environment for:
         - Running LLMs locally for agent testing
         - Simulating API calls and external dependencies
         - Monitoring agent behavior in a controlled setting
         - Collecting performance metrics for optimization
-        """)
-        
-        st.info("This enables Archon to test and refine agents in a controlled environment before deployment, significantly improving reliability and performance through empirical iteration.")
-    
+        """
+        )
+
+        st.info(
+            "This enables Archon to test and refine agents in a controlled environment before deployment, significantly improving reliability and performance through empirical iteration."
+        )
+
     # V10: Multi-Framework Support
     with st.expander("V10: Multi-Framework Support"):
         st.write("Framework-agnostic agent generation")
-        
+
         frameworks = {
-            "Pydantic AI": {"status": "Supported", "description": "Native support for function-based agents"},
-            "LangGraph": {"status": "Coming in V7", "description": "Declarative multi-agent orchestration"},
-            "LangChain": {"status": "Planned", "description": "Popular agent framework with extensive tools"},
-            "Agno (Phidata)": {"status": "Planned", "description": "Multi-agent workflow framework"},
-            "CrewAI": {"status": "Planned", "description": "Role-based collaborative agents"},
-            "LlamaIndex": {"status": "Planned", "description": "RAG-focused agent framework"}
+            "Pydantic AI": {
+                "status": "Supported",
+                "description": "Native support for function-based agents",
+            },
+            "LangGraph": {
+                "status": "Coming in V7",
+                "description": "Declarative multi-agent orchestration",
+            },
+            "LangChain": {
+                "status": "Planned",
+                "description": "Popular agent framework with extensive tools",
+            },
+            "Agno (Phidata)": {
+                "status": "Planned",
+                "description": "Multi-agent workflow framework",
+            },
+            "CrewAI": {
+                "status": "Planned",
+                "description": "Role-based collaborative agents",
+            },
+            "LlamaIndex": {
+                "status": "Planned",
+                "description": "RAG-focused agent framework",
+            },
         }
-        
+
         # Create a frameworks comparison table
         df_data = {
             "Framework": list(frameworks.keys()),
             "Status": [frameworks[f]["status"] for f in frameworks],
-            "Description": [frameworks[f]["description"] for f in frameworks]
+            "Description": [frameworks[f]["description"] for f in frameworks],
         }
-        
+
         st.dataframe(df_data, use_container_width=True)
-    
+
     # V11: Autonomous Framework Learning
     with st.expander("V11: Autonomous Framework Learning"):
         st.write("Self-learning from mistakes and continuous improvement")
-        
+
         st.write("#### Self-Improvement Process")
-        
+
         improvement_process = [
-            {"phase": "Error Detection", "description": "Identifies patterns in failed agent generations and runtime errors"},
-            {"phase": "Root Cause Analysis", "description": "Analyzes error patterns to determine underlying issues in prompts or examples"},
-            {"phase": "Prompt Refinement", "description": "Automatically updates system prompts to address identified weaknesses"},
-            {"phase": "Example Augmentation", "description": "Adds new examples to the prompt library based on successful generations"},
-            {"phase": "Tool Enhancement", "description": "Creates or modifies tools to handle edge cases and common failure modes"},
-            {"phase": "Validation", "description": "Tests improvements against historical failure cases to ensure progress"}
+            {
+                "phase": "Error Detection",
+                "description": "Identifies patterns in failed agent generations and runtime errors",
+            },
+            {
+                "phase": "Root Cause Analysis",
+                "description": "Analyzes error patterns to determine underlying issues in prompts or examples",
+            },
+            {
+                "phase": "Prompt Refinement",
+                "description": "Automatically updates system prompts to address identified weaknesses",
+            },
+            {
+                "phase": "Example Augmentation",
+                "description": "Adds new examples to the prompt library based on successful generations",
+            },
+            {
+                "phase": "Tool Enhancement",
+                "description": "Creates or modifies tools to handle edge cases and common failure modes",
+            },
+            {
+                "phase": "Validation",
+                "description": "Tests improvements against historical failure cases to ensure progress",
+            },
         ]
-        
+
         for i, phase in enumerate(improvement_process):
             st.write(f"**{i+1}. {phase['phase']}:** {phase['description']}")
-        
-        st.info("This enables Archon to stay updated with the latest AI frameworks without manual intervention.")
-    
+
+        st.info(
+            "This enables Archon to stay updated with the latest AI frameworks without manual intervention."
+        )
+
     # V12: Advanced RAG Techniques
     with st.expander("V12: Advanced RAG Techniques"):
         st.write("Enhanced retrieval and incorporation of framework documentation")
-        
+
         st.write("#### Advanced RAG Components")
-        
+
         col1, col2 = st.columns(2)
-        
+
         with col1:
             st.markdown("#### Document Processing")
-            st.markdown("""
+            st.markdown(
+                """
             - **Hierarchical Chunking**: Multi-level chunking strategy that preserves document structure
             - **Semantic Headers**: Extraction of meaningful section headers for better context
             - **Code-Text Separation**: Specialized embedding models for code vs. natural language
             - **Metadata Enrichment**: Automatic tagging with framework version, function types, etc.
-            """)
-            
+            """
+            )
+
             st.markdown("#### Query Processing")
-            st.markdown("""
+            st.markdown(
+                """
             - **Query Decomposition**: Breaking complex queries into sub-queries
             - **Framework Detection**: Identifying which framework the query relates to
             - **Intent Classification**: Determining if query is about usage, concepts, or troubleshooting
             - **Query Expansion**: Adding relevant framework-specific terminology
-            """)
-        
+            """
+            )
+
         with col2:
             st.markdown("#### Retrieval Enhancements")
-            st.markdown("""
+            st.markdown(
+                """
             - **Hybrid Search**: Combining dense and sparse retrievers for optimal results
             - **Re-ranking**: Post-retrieval scoring based on relevance to the specific task
             - **Cross-Framework Retrieval**: Finding analogous patterns across different frameworks
             - **Code Example Prioritization**: Boosting practical examples in search results
-            """)
-            
+            """
+            )
+
             st.markdown("#### Knowledge Integration")
-            st.markdown("""
+            st.markdown(
+                """
             - **Context Stitching**: Intelligently combining information from multiple chunks
             - **Framework Translation**: Converting patterns between frameworks (e.g., LangChain to LangGraph)
             - **Version Awareness**: Handling differences between framework versions
             - **Adaptive Retrieval**: Learning from successful and unsuccessful retrievals
-            """)
-        
-        st.info("This enables Archon to more effectively retrieve and incorporate framework documentation, leading to more accurate and contextually appropriate agent generation.")
-    
+            """
+            )
+
+        st.info(
+            "This enables Archon to more effectively retrieve and incorporate framework documentation, leading to more accurate and contextually appropriate agent generation."
+        )
+
     # V13: MCP Agent Marketplace
     with st.expander("V13: MCP Agent Marketplace"):
-        st.write("Integrating Archon agents as MCP servers and publishing to marketplaces")
-        
+        st.write(
+            "Integrating Archon agents as MCP servers and publishing to marketplaces"
+        )
+
         st.write("#### MCP Integration Process")
-        
+
         mcp_integration_process = [
-            {"phase": "Protocol Implementation", "description": "Implement the Model Context Protocol to enable IDE integration"},
-            {"phase": "Agent Conversion", "description": "Transform Archon-generated agents into MCP-compatible servers"},
-            {"phase": "Specialized Agent Creation", "description": "Build purpose-specific agents for code review, refactoring, and testing"},
-            {"phase": "Marketplace Publishing", "description": "Package and publish agents to MCP marketplaces for distribution"},
-            {"phase": "IDE Integration", "description": "Enable seamless operation within Windsurf, Cursor, and other MCP-enabled IDEs"}
+            {
+                "phase": "Protocol Implementation",
+                "description": "Implement the Model Context Protocol to enable IDE integration",
+            },
+            {
+                "phase": "Agent Conversion",
+                "description": "Transform Archon-generated agents into MCP-compatible servers",
+            },
+            {
+                "phase": "Specialized Agent Creation",
+                "description": "Build purpose-specific agents for code review, refactoring, and testing",
+            },
+            {
+                "phase": "Marketplace Publishing",
+                "description": "Package and publish agents to MCP marketplaces for distribution",
+            },
+            {
+                "phase": "IDE Integration",
+                "description": "Enable seamless operation within Windsurf, Cursor, and other MCP-enabled IDEs",
+            },
         ]
-        
+
         for i, phase in enumerate(mcp_integration_process):
             st.write(f"**{i+1}. {phase['phase']}:** {phase['description']}")
-        
-        st.info("This enables Archon to create specialized agents that operate directly within IDEs through the MCP protocol, while also making them available through marketplace distribution channels.")
-    
+
+        st.info(
+            "This enables Archon to create specialized agents that operate directly within IDEs through the MCP protocol, while also making them available through marketplace distribution channels."
+        )
+
     # Future Integrations section
     st.write("### Future Integrations")
-    
+
     # LangSmith
     with st.expander("LangSmith"):
         st.write("Integration with LangChain's tracing and monitoring platform")
-        
-        st.image("https://docs.smith.langchain.com/assets/images/trace-9510284b5b15ba55fc1cca6af2404657.png", width=600)
-        
+
+        st.image(
+            "https://docs.smith.langchain.com/assets/images/trace-9510284b5b15ba55fc1cca6af2404657.png",
+            width=600,
+        )
+
         st.write("#### LangSmith Benefits")
-        st.markdown("""
+        st.markdown(
+            """
         - **Tracing**: Monitor agent execution steps and decisions
         - **Debugging**: Identify issues in complex agent workflows
         - **Analytics**: Track performance and cost metrics
         - **Evaluation**: Assess agent quality with automated testing
         - **Feedback Collection**: Gather human feedback to improve agents
-        """)
-    
+        """
+        )
+
     # MCP Marketplace
     with st.expander("MCP Marketplace"):
         st.write("Integration with AI IDE marketplaces")
-        
+
         st.write("#### MCP Marketplace Integration")
-        st.markdown("""
+        st.markdown(
+            """
         - Publish Archon itself as a premium agent in MCP marketplaces
         - Create specialized Archon variants for different development needs
         - Enable one-click installation directly from within IDEs
         - Integrate seamlessly with existing development workflows
-        """)
-        
-        st.warning("The Model Context Protocol (MCP) is an emerging standard for AI assistant integration with IDEs like Windsurf, Cursor, Cline, and Roo Code.")
-    
+        """
+        )
+
+        st.warning(
+            "The Model Context Protocol (MCP) is an emerging standard for AI assistant integration with IDEs like Windsurf, Cursor, Cline, and Roo Code."
+        )
+
     # Other Frameworks
     with st.expander("Other Frameworks besides Pydantic AI"):
         st.write("Support for additional agent frameworks")
-        
+
         st.write("#### Framework Adapter Architecture")
-        
-        st.graphviz_chart('''
+
+        st.graphviz_chart(
+            """
         digraph {
             rankdir=TB;
             node [shape=box, style=filled, color=lightblue];
@@ -790,35 +932,63 @@ def future_enhancements_tab():
             Adapter -> CrewAI;
             Adapter -> LlamaIndex;
         }
-        ''')
-    
+        """
+        )
+
     # Vector Databases
     with st.expander("Other Vector Databases besides Supabase"):
         st.write("Support for additional vector databases")
-        
+
         vector_dbs = {
-            "Supabase": {"status": "Supported", "features": ["pgvector integration", "SQL API", "Real-time subscriptions"]},
-            "Pinecone": {"status": "Planned", "features": ["High scalability", "Low latency", "Serverless"]},
-            "Qdrant": {"status": "Planned", "features": ["Filtering", "Self-hosted option", "REST API"]},
-            "Milvus": {"status": "Planned", "features": ["Horizontal scaling", "Cloud-native", "Hybrid search"]},
-            "Chroma": {"status": "Planned", "features": ["Local-first", "Lightweight", "Simple API"]},
-            "Weaviate": {"status": "Planned", "features": ["GraphQL", "Multi-modal", "RESTful API"]}
+            "Supabase": {
+                "status": "Supported",
+                "features": [
+                    "pgvector integration",
+                    "SQL API",
+                    "Real-time subscriptions",
+                ],
+            },
+            "Pinecone": {
+                "status": "Planned",
+                "features": ["High scalability", "Low latency", "Serverless"],
+            },
+            "Qdrant": {
+                "status": "Planned",
+                "features": ["Filtering", "Self-hosted option", "REST API"],
+            },
+            "Milvus": {
+                "status": "Planned",
+                "features": ["Horizontal scaling", "Cloud-native", "Hybrid search"],
+            },
+            "Chroma": {
+                "status": "Planned",
+                "features": ["Local-first", "Lightweight", "Simple API"],
+            },
+            "Weaviate": {
+                "status": "Planned",
+                "features": ["GraphQL", "Multi-modal", "RESTful API"],
+            },
         }
-        
+
         # Create vector DB comparison table
         df_data = {
             "Vector Database": list(vector_dbs.keys()),
             "Status": [vector_dbs[db]["status"] for db in vector_dbs],
-            "Key Features": [", ".join(vector_dbs[db]["features"]) for db in vector_dbs]
+            "Key Features": [
+                ", ".join(vector_dbs[db]["features"]) for db in vector_dbs
+            ],
         }
-        
+
         st.dataframe(df_data, use_container_width=True)
-    
+
     # Local AI Package
     with st.expander("Local AI Package Integration"):
-        st.write("Integration with [Local AI Package](https://github.com/coleam00/local-ai-packaged)")
-        
-        st.markdown("""
+        st.write(
+            "Integration with [Local AI Package](https://github.com/coleam00/local-ai-packaged)"
+        )
+
+        st.markdown(
+            """
         The Local AI Package enables running models entirely locally, providing:
         
         - **Complete Privacy**: No data leaves your machine
@@ -826,6 +996,9 @@ def future_enhancements_tab():
         - **Offline Operation**: Work without internet connectivity
         - **Custom Fine-tuning**: Adapt models to specific domains
         - **Lower Latency**: Reduce response times for better UX
-        """)
-        
-        st.info("This integration will allow Archon to operate fully offline with local models for both agent creation and execution.")
+        """
+        )
+
+        st.info(
+            "This integration will allow Archon to operate fully offline with local models for both agent creation and execution."
+        )

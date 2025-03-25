@@ -6,10 +6,12 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.utils import create_new_tab_button
 
+
 def intro_tab():
-    """Display the introduction and setup guide for Archon"""    
+    """Display the introduction and setup guide for Archon"""
     # Welcome message
-    st.markdown("""
+    st.markdown(
+        """
     Archon is an AI meta-agent designed to autonomously build, refine, and optimize other AI agents.
     
     It serves both as a practical tool for developers and as an educational framework demonstrating the evolution of agentic systems.
@@ -17,20 +19,26 @@ def intro_tab():
     all the way to a full agentic workflow using LangGraph that can build other AI agents with any framework.
     
     Through its iterative development, Archon showcases the power of planning, feedback loops, and domain-specific knowledge in creating robust AI agents.
-    """)
-    
+    """
+    )
+
     # Environment variables update notice
-    st.warning("""
+    st.warning(
+        """
     **🔄 IMPORTANT UPDATE (March 20th):** Archon now uses a multi-agent workflow with specialized refiner agents for autonomous prompt, tools, and agent definition improvements. The primary coding agent still creates the initial agent by itself, but then you can say 'refine' or something along those lines as a follow up prompt to kick off the specialized agents in parallel.
-    """)
-    
+    """
+    )
+
     # Setup guide with expandable sections
     st.markdown("## Setup Guide")
-    st.markdown("Follow these concise steps to get Archon up and running (IMPORTANT: come back here after each step):")
-    
+    st.markdown(
+        "Follow these concise steps to get Archon up and running (IMPORTANT: come back here after each step):"
+    )
+
     # Step 1: Environment Configuration
     with st.expander("Step 1: Environment Configuration", expanded=True):
-        st.markdown("""
+        st.markdown(
+            """
         ### Environment Configuration
         
         First, you need to set up your environment variables:
@@ -46,13 +54,20 @@ def intro_tab():
            - `REASONER_MODEL`: Planning model (e.g., o3-mini)
         
         These settings determine how Archon connects to external services and which models it uses.
-        """)
+        """
+        )
         # Add a button to navigate to the Environment tab
-        create_new_tab_button("Go to Environment Section (New Tab)", "Environment", key="goto_env", use_container_width=True)
-    
+        create_new_tab_button(
+            "Go to Environment Section (New Tab)",
+            "Environment",
+            key="goto_env",
+            use_container_width=True,
+        )
+
     # Step 2: Database Setup
     with st.expander("Step 2: Database Setup", expanded=False):
-        st.markdown("""
+        st.markdown(
+            """
         ### Database Setup
         
         Archon uses Supabase for vector storage and retrieval:
@@ -62,13 +77,20 @@ def intro_tab():
         3. Follow the instructions to create the `site_pages` table
         
         This creates the necessary tables, indexes, and functions for vector similarity search.
-        """)
+        """
+        )
         # Add a button to navigate to the Database tab
-        create_new_tab_button("Go to Database Section (New Tab)", "Database", key="goto_db", use_container_width=True)
-    
+        create_new_tab_button(
+            "Go to Database Section (New Tab)",
+            "Database",
+            key="goto_db",
+            use_container_width=True,
+        )
+
     # Step 3: Documentation Crawling
     with st.expander("Step 3: Documentation Crawling", expanded=False):
-        st.markdown("""
+        st.markdown(
+            """
         ### Documentation Crawling
         
         Populate the database with framework documentation:
@@ -78,13 +100,20 @@ def intro_tab():
         3. Wait for the crawling process to complete
         
         This step downloads and processes documentation, creating embeddings for semantic search.
-        """)
+        """
+        )
         # Add a button to navigate to the Documentation tab
-        create_new_tab_button("Go to the Documentation Section (New Tab)", "Documentation", key="goto_docs", use_container_width=True)
-    
+        create_new_tab_button(
+            "Go to the Documentation Section (New Tab)",
+            "Documentation",
+            key="goto_docs",
+            use_container_width=True,
+        )
+
     # Step 4: Agent Service
     with st.expander("Step 4: Agent Service Setup (for MCP)", expanded=False):
-        st.markdown("""
+        st.markdown(
+            """
         ### MCP Agent Service Setup
         
         Start the graph service for agent generation:
@@ -94,13 +123,20 @@ def intro_tab():
         3. Verify the service is running
         
         The agent service powers the LangGraph workflow for agent creation.
-        """)
+        """
+        )
         # Add a button to navigate to the Agent Service tab
-        create_new_tab_button("Go to Agent Service Section (New Tab)", "Agent Service", key="goto_service", use_container_width=True)
-    
+        create_new_tab_button(
+            "Go to Agent Service Section (New Tab)",
+            "Agent Service",
+            key="goto_service",
+            use_container_width=True,
+        )
+
     # Step 5: MCP Configuration (Optional)
     with st.expander("Step 5: MCP Configuration (Optional)", expanded=False):
-        st.markdown("""
+        st.markdown(
+            """
         ### MCP Configuration
         
         For integration with AI IDEs:
@@ -110,13 +146,20 @@ def intro_tab():
         3. Follow the instructions to configure your IDE
         
         This enables you to use Archon directly from your AI-powered IDE.
-        """)
+        """
+        )
         # Add a button to navigate to the MCP tab
-        create_new_tab_button("Go to MCP Section (New Tab)", "MCP", key="goto_mcp", use_container_width=True)
-    
+        create_new_tab_button(
+            "Go to MCP Section (New Tab)",
+            "MCP",
+            key="goto_mcp",
+            use_container_width=True,
+        )
+
     # Step 6: Using Archon
     with st.expander("Step 6: Using Archon", expanded=False):
-        st.markdown("""
+        st.markdown(
+            """
         ### Using Archon
         
         Once everything is set up:
@@ -126,15 +169,23 @@ def intro_tab():
         3. Archon will plan and generate the necessary code
         
         You can also use Archon directly from your AI IDE if you've configured MCP.
-        """)
+        """
+        )
         # Add a button to navigate to the Chat tab
-        create_new_tab_button("Go to Chat Section (New Tab)", "Chat", key="goto_chat", use_container_width=True)
-    
+        create_new_tab_button(
+            "Go to Chat Section (New Tab)",
+            "Chat",
+            key="goto_chat",
+            use_container_width=True,
+        )
+
     # Resources
-    st.markdown("""
+    st.markdown(
+        """
     ## Additional Resources
     
     - [GitHub Repository](https://github.com/coleam00/archon)
     - [Archon Community Forum](https://thinktank.ottomator.ai/c/archon/30)
     - [GitHub Kanban Board](https://github.com/users/coleam00/projects/1)
-    """)
+    """
+    )
