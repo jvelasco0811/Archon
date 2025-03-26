@@ -21,9 +21,10 @@ active_threads: Dict[str, List[str]] = {}
 # FastAPI service URL
 GRAPH_SERVICE_URL = os.getenv("GRAPH_SERVICE_URL", "http://localhost:8100")
 
+
 def write_to_log(message: str):
     """Write a message to the logs.txt file in the workbench directory.
-    
+
     Args:
         message: The message to log
     """
@@ -40,12 +41,13 @@ def write_to_log(message: str):
     with open(log_path, "a", encoding="utf-8") as f:
         f.write(log_entry)
 
+
 @mcp.tool()
 async def create_thread() -> str:
     """Create a new conversation thread for Archon.
     Always call this tool before invoking Archon for the first time in a conversation.
     (if you don't already have a thread ID)
-    
+
     Returns:
         str: A unique thread ID for the conversation
     """
@@ -72,7 +74,8 @@ def _make_request(thread_id: str, user_input: str, config: dict) -> str:
         return response.json()
     except requests.exceptions.Timeout:
         write_to_log(f"Request timed out for thread {thread_id}")
-        raise TimeoutError("Request to graph service timed out. The operation took longer than expected.")
+        raise TimeoutError(
+            "Request to graph service timed out. The operation took longer than expected.")
     except requests.exceptions.RequestException as e:
         write_to_log(f"Request failed for thread {thread_id}: {str(e)}")
         raise
@@ -89,11 +92,11 @@ async def run_agent(thread_id: str, user_input: str) -> str:
     autonomously (they can just say 'refine') or they can just give feedback and you'll improve the agent that way.
 
     If they want to refine the agent, just give 'refine' for user_input.
-    
+
     Args:
         thread_id: The conversation thread ID
         user_input: The user's message to process
-    
+
     Returns:
         str: The agent's response which generally includes the code for the agent
     """
@@ -108,19 +111,18 @@ async def run_agent(thread_id: str, user_input: str) -> str:
             "thread_id": thread_id
         }
     }
-    
+
     try:
         result = await asyncio.to_thread(_make_request, thread_id, user_input, config)
         active_threads[thread_id].append(user_input)
         return result['response']
-        
+
     except Exception as e:
         raise
 
 
 if __name__ == "__main__":
     write_to_log("Starting MCP server")
-    
+
     # Run MCP server
     mcp.run(transport='stdio')
-
