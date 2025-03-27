@@ -207,6 +207,66 @@ def environment_tab():
         ):
             st.subheader("AWS Configuration")
 
+            # AWS Authentication Method
+            aws_auth_method = st.radio(
+                "AWS Authentication Method",
+                options=["profile", "keys"],
+                help="Choose how to authenticate with AWS: using a profile or access keys",
+                key="input_AWS_AUTH_METHOD",
+            )
+            updated_values["AWS_AUTH_METHOD"] = aws_auth_method
+
+            if aws_auth_method == "profile":
+                # AWS Profile
+                aws_profile_help = (
+                    "AWS Profile name from your AWS credentials\n\n"
+                    "Example: jaime.dev"
+                )
+                aws_profile = st.text_input(
+                    "AWS_PROFILE:",
+                    value=profile_env_vars.get("AWS_PROFILE", "default"),
+                    help=aws_profile_help,
+                    key="input_AWS_PROFILE",
+                )
+                updated_values["AWS_PROFILE"] = aws_profile
+
+            elif aws_auth_method == "keys":
+                # AWS Access Key ID
+                aws_access_key_help = "Your AWS Access Key ID"
+                aws_access_key = st.text_input(
+                    "AWS_ACCESS_KEY_ID:",
+                    value=profile_env_vars.get("AWS_ACCESS_KEY_ID", ""),
+                    help=aws_access_key_help,
+                    type="password",
+                    key="input_AWS_ACCESS_KEY_ID",
+                )
+                updated_values["AWS_ACCESS_KEY_ID"] = aws_access_key
+
+                # AWS Secret Access Key
+                aws_secret_key_help = "Your AWS Secret Access Key"
+                aws_secret_key = st.text_input(
+                    "AWS_SECRET_ACCESS_KEY:",
+                    value=profile_env_vars.get("AWS_SECRET_ACCESS_KEY", ""),
+                    help=aws_secret_key_help,
+                    type="password",
+                    key="input_AWS_SECRET_ACCESS_KEY",
+                )
+                updated_values["AWS_SECRET_ACCESS_KEY"] = aws_secret_key
+
+                # AWS Session Token (Optional)
+                aws_session_token_help = (
+                    "Your AWS Session Token (optional, for temporary credentials)"
+                )
+                aws_session_token = st.text_input(
+                    "AWS_SESSION_TOKEN (Optional):",
+                    value=profile_env_vars.get("AWS_SESSION_TOKEN", ""),
+                    help=aws_session_token_help,
+                    type="password",
+                    key="input_AWS_SESSION_TOKEN",
+                )
+                if aws_session_token:
+                    updated_values["AWS_SESSION_TOKEN"] = aws_session_token
+
             # AWS Region
             aws_region_help = "AWS Region for Bedrock services\n\n" "Example: us-west-2"
             aws_region = st.text_input(
@@ -216,18 +276,6 @@ def environment_tab():
                 key="input_AWS_REGION",
             )
             updated_values["AWS_REGION"] = aws_region
-
-            # AWS Profile
-            aws_profile_help = (
-                "AWS Profile name from your AWS credentials\n\n" "Example: jaime.dev"
-            )
-            aws_profile = st.text_input(
-                "AWS_PROFILE:",
-                value=profile_env_vars.get("AWS_PROFILE", "jaime.dev"),
-                help=aws_profile_help,
-                key="input_AWS_PROFILE",
-            )
-            updated_values["AWS_PROFILE"] = aws_profile
 
         # 1. Large Language Models Section - Settings
         st.subheader("LLM Settings")
