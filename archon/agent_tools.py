@@ -14,6 +14,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 embedding_model = get_env_var("EMBEDDING_MODEL") or "text-embedding-3-small"
 embedding_provider = get_env_var("EMBEDDING_PROVIDER") or "OpenAI"
 aws_region = get_env_var("AWS_REGION") or "us-west-2"
+aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+aws_session_token = os.getenv("AWS_SESSION_TOKEN")
+profile_name = os.getenv("AWS_PROFILE")
+
 EMBEDDING_DIMENSIONS = {"OpenAI": 1536, "Bedrock": 1024}
 
 
@@ -32,20 +37,26 @@ async def get_bedrock_embedding(
     """
     try:
         # Initialize Bedrock client
-        session = None
-        if (os.getenv("AWS_AUTH_METHOD") == "profile" and os.getenv("AWS_PROFILE") is not None):
-            session = boto3.Session(
-                profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
-            )
+        # session = None
+        # if (os.getenv("AWS_AUTH_METHOD") == "profile" and os.getenv("AWS_PROFILE") is not None):
+        #     session = boto3.Session(
+        #         profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
+        #     )
 
-        if (os.getenv("AWS_AUTH_METHOD") == "keys" and os.getenv("AWS_ACCESS_KEY_ID") is not None and os.getenv("AWS_SECRET_ACCESS_KEY") is not None):
-            session = boto3.Session(
-                aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-                aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-                aws_session_token=os.getenv("AWS_SESSION_TOKEN"),
-                region_name=os.getenv("AWS_REGION")
-            )
+        # if (os.getenv("AWS_AUTH_METHOD") == "keys" and os.getenv("AWS_ACCESS_KEY_ID") is not None and os.getenv("AWS_SECRET_ACCESS_KEY") is not None):
+        #     session = boto3.Session(
+        #         aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        #         aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+        #         aws_session_token=os.getenv("AWS_SESSION_TOKEN"),
+        #         region_name=os.getenv("AWS_REGION")
+        #     )
 
+        session = boto3.Session(
+            aws_access_key_id,
+            aws_secret_access_key,
+            aws_session_token,
+            region_name=aws_region,
+        )
         bedrock_client = session.client("bedrock-runtime")
 
         embedding_request = json.dumps(
@@ -197,8 +208,7 @@ async def get_page_content_tool(supabase: Client, url: str) -> str:
             return f"No content found for URL: {url}"
 
         # Format the page with its title and all chunks
-        page_title = result.data[0]["title"].split(
-            " - ")[0]  # Get the main title
+        page_title = result.data[0]["title"].split(" - ")[0]  # Get the main title
         formatted_content = [f"# {page_title}\n"]
 
         # Add each chunk's content

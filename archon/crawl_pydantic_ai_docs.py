@@ -41,7 +41,11 @@ API_KEY = get_env_var("LLM_API_KEY") or "no-api-key-provided"
 
 # AWS configuration for Bedrock
 AWS_REGION = get_env_var("AWS_REGION") or "us-west-2"
-
+aws_region = get_env_var("AWS_REGION") or "us-west-2"
+aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+aws_session_token = os.getenv("AWS_SESSION_TOKEN")
+profile_name = os.getenv("AWS_PROFILE")
 
 # Initialize clients based on provider
 embedding_client = None
@@ -50,19 +54,34 @@ bedrock_runtime = None
 
 if EMBEDDING_PROVIDER == "Bedrock" or LLM_PROVIDER == "Bedrock":
     # Initialize Bedrock client
-    session = None
-    if (os.getenv("AWS_AUTH_METHOD") == "profile" and os.getenv("AWS_PROFILE") is not None):
-        session = boto3.Session(
-            profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
-        )
+    # session = None
+    # if (
+    #     os.getenv("AWS_AUTH_METHOD") == "profile"
+    #     and os.getenv("AWS_PROFILE") is not None
+    # ):
+    #     session = boto3.Session(
+    #         profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
+    #     )
 
-    if (os.getenv("AWS_AUTH_METHOD") == "keys" and os.getenv("AWS_ACCESS_KEY_ID") is not None and os.getenv("AWS_SECRET_ACCESS_KEY") is not None):
-        session = boto3.Session(
-            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-            aws_session_token=os.getenv("AWS_SESSION_TOKEN"),
-            region_name=os.getenv("AWS_REGION")
-        )
+    # if (
+    #     os.getenv("AWS_AUTH_METHOD") == "keys"
+    #     and os.getenv("AWS_ACCESS_KEY_ID") is not None
+    #     and os.getenv("AWS_SECRET_ACCESS_KEY") is not None
+    # ):
+    #     session = boto3.Session(
+    #         aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+    #         aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+    #         aws_session_token=os.getenv("AWS_SESSION_TOKEN"),
+    #         region_name=os.getenv("AWS_REGION"),
+    #     )
+
+    session = boto3.Session(
+        aws_access_key_id,
+        aws_secret_access_key,
+        aws_session_token,
+        region_name=aws_region,
+    )
+
     bedrock_runtime = session.client("bedrock-runtime")
     if EMBEDDING_PROVIDER == "Bedrock":
         EMBEDDING_DIMENSION = 1024  # Titan embedding dimension
@@ -288,10 +307,8 @@ async def get_title_and_summary(chunk: str, url: str) -> Dict[str, str]:
                     {
                         "role": "user",
                         "content": [
-                                {
-                                    "text": f"URL: {url}\n\nContent:\n{chunk[:1000]}..."
-                                }
-                        ]
+                            {"text": f"URL: {url}\n\nContent:\n{chunk[:1000]}..."}
+                        ],
                     }
                 ],
                 "system": [{"text": system_prompt}],
@@ -299,24 +316,24 @@ async def get_title_and_summary(chunk: str, url: str) -> Dict[str, str]:
                     "maxTokens": 1000,
                     "topP": 0.9,
                     "topK": 20,
-                    "temperature": 0.7
-                }
+                    "temperature": 0.7,
+                },
             }
             response = bedrock_runtime.invoke_model(
                 modelId="us.amazon.nova-lite-v1:0",
                 body=json.dumps(request_body),
-
             )
             # print('response debug', response)
             # Decode the response body.
             response_body = json.loads(response["body"].read())
             # print('response_body debug', response_body)
             # Extract and print the response text.
-            response_text = response_body['output']['message']['content'][0]['text']
+            response_text = response_body["output"]["message"]["content"][0]["text"]
             # If the content is wrapped in ```json, clean it up
-            if response_text.startswith('```json'):
-                response_text = response_text.replace(
-                    '```json\n', '').replace('\n```', '')
+            if response_text.startswith("```json"):
+                response_text = response_text.replace("```json\n", "").replace(
+                    "\n```", ""
+                )
 
             # Parse the JSON string into a dictionary
             result = json.loads(response_text)
@@ -548,8 +565,7 @@ async def crawl_parallel_with_requests(
 
     # Process all URLs in parallel with limited concurrency
     if tracker:
-        tracker.log(
-            f"Processing {len(urls)} URLs with concurrency {max_concurrent}")
+        tracker.log(f"Processing {len(urls)} URLs with concurrency {max_concurrent}")
         # Ensure UI gets updated
         if tracker.progress_callback:
             tracker.progress_callback(tracker.get_status())

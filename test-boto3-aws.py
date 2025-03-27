@@ -5,6 +5,7 @@ import time
 import statistics
 from typing import List, Dict, Any, Optional, Callable, Union, Tuple
 from dotenv import load_dotenv
+from utils.utils import get_env_var
 
 load_dotenv()
 # Initialize clients based on provider
@@ -15,6 +16,12 @@ EMBEDDING_PROVIDER = os.getenv("EMBEDDING_PROVIDER") or "OpenAI"
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL") or "text-embedding-3-small"
 EMBEDDING_DIMENSION = 1536  # Default for OpenAI
 LLM_MODEL = os.getenv("PRIMARY_MODEL") or "gpt-4o-mini"
+aws_region = os.getenv("AWS_REGION") or "us-west-2"
+aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+aws_session_token = os.getenv("AWS_SESSION_TOKEN")
+profile_name = os.getenv("AWS_PROFILE")
+
 
 # Define model configurations
 NOVA_MODELS = {
@@ -33,8 +40,19 @@ CLAUDE_MODELS = {
 
 if EMBEDDING_PROVIDER == "Bedrock" or LLM_PROVIDER == "Bedrock":
     # Initialize Bedrock client
+    # session = boto3.Session(
+    #     profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
+    # )
+    print(aws_access_key_id)
+    print(aws_secret_access_key)
+    print(aws_session_token)
+    print(profile_name)
+    print(aws_region)
     session = boto3.Session(
-        profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
+        aws_access_key_id,
+        aws_secret_access_key,
+        aws_session_token,
+        region_name=aws_region,
     )
     bedrock_runtime = session.client("bedrock-runtime")
     if EMBEDDING_PROVIDER == "Bedrock":
@@ -69,10 +87,8 @@ async def get_title_and_summary(chunk: str, url: str) -> Tuple[Dict[str, str], f
                         {
                             "role": "user",
                             "content": [
-                                {
-                                    "text": f"URL: {url}\n\nContent:\n{chunk[:1000]}..."
-                                }
-                            ]
+                                {"text": f"URL: {url}\n\nContent:\n{chunk[:1000]}..."}
+                            ],
                         }
                     ],
                     "system": [{"text": system_content}],
@@ -80,8 +96,8 @@ async def get_title_and_summary(chunk: str, url: str) -> Tuple[Dict[str, str], f
                         "maxTokens": 1000,
                         "topP": 0.9,
                         "topK": 20,
-                        "temperature": 0.7
-                    }
+                        "temperature": 0.7,
+                    },
                 }
             elif model_id in CLAUDE_MODELS:
                 # Claude models request format
@@ -96,13 +112,13 @@ async def get_title_and_summary(chunk: str, url: str) -> Tuple[Dict[str, str], f
                             "content": [
                                 {
                                     "type": "text",
-                                    "text": f"Please analyze this content and respond with a JSON object:\n\nURL: {url}\n\nContent:\n{chunk[:1000]}..."
+                                    "text": f"Please analyze this content and respond with a JSON object:\n\nURL: {url}\n\nContent:\n{chunk[:1000]}...",
                                 }
-                            ]
+                            ],
                         }
                     ],
                     "temperature": 0.7,
-                    "top_p": 0.9
+                    "top_p": 0.9,
                 }
             else:
                 raise ValueError(f"Unsupported model: {model_id}")
@@ -119,13 +135,13 @@ async def get_title_and_summary(chunk: str, url: str) -> Tuple[Dict[str, str], f
             stream = response.get("body")
             if stream:
                 for event in stream:
-                    chunk = json.loads(
-                        event.get("chunk").get("bytes").decode())
+                    chunk = json.loads(event.get("chunk").get("bytes").decode())
                     if model_id in NOVA_MODELS:
                         content_block_delta = chunk.get("contentBlockDelta")
                         if content_block_delta:
-                            full_response += content_block_delta.get(
-                                "delta", {}).get("text", "")
+                            full_response += content_block_delta.get("delta", {}).get(
+                                "text", ""
+                            )
                     else:  # Claude models
                         delta = chunk.get("delta", {}).get("text", "")
                         if delta:
@@ -143,8 +159,9 @@ async def get_title_and_summary(chunk: str, url: str) -> Tuple[Dict[str, str], f
 
                 # Handle responses wrapped in ```json code blocks
                 if full_response.startswith("```json"):
-                    full_response = full_response.replace(
-                        "```json", "").replace("```", "")
+                    full_response = full_response.replace("```json", "").replace(
+                        "```", ""
+                    )
 
                 # Find the first '{' and last '}'
                 start_idx = full_response.find("{")
@@ -156,7 +173,7 @@ async def get_title_and_summary(chunk: str, url: str) -> Tuple[Dict[str, str], f
                     print(f"Could not find valid JSON markers in response")
                     return {
                         "title": "Error: No JSON found",
-                        "summary": "Could not find valid JSON in response"
+                        "summary": "Could not find valid JSON in response",
                     }, inference_time
 
             except json.JSONDecodeError as e:
@@ -164,7 +181,7 @@ async def get_title_and_summary(chunk: str, url: str) -> Tuple[Dict[str, str], f
                 print(f"Attempted to parse: {full_response}")
                 return {
                     "title": "Error processing JSON response",
-                    "summary": "Failed to parse response as JSON"
+                    "summary": "Failed to parse response as JSON",
                 }, inference_time
 
     except Exception as e:
@@ -222,10 +239,12 @@ def generate_embedding(
     bedrock_runtime = session.client("bedrock-runtime")
 
     truncated_text = text[:8192]
-    embedding_request = json.dumps({
-        "inputText": truncated_text,
-        "dimensions": 1024,
-    })
+    embedding_request = json.dumps(
+        {
+            "inputText": truncated_text,
+            "dimensions": 1024,
+        }
+    )
 
     try:
         response = bedrock_runtime.invoke_model(
@@ -242,6 +261,7 @@ def generate_embedding(
 
 
 if __name__ == "__main__":
+
     async def main():
         text = "This is a sample text to generate an embedding for."
         url = "https://example.com"
@@ -293,4 +313,5 @@ if __name__ == "__main__":
             print(f"  Max: {max_time:.2f} seconds")
 
     import asyncio
+
     asyncio.run(main())

@@ -31,8 +31,7 @@ from supabase import Client
 
 # Add the parent directory to sys.path to allow importing from the parent directory
 sys.path.append(
-    os.path.dirname(os.path.dirname(
-        os.path.dirname(os.path.abspath(__file__))))
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 
 load_dotenv()
@@ -43,6 +42,10 @@ llm = get_env_var("PRIMARY_MODEL") or "gpt-4o-mini"
 base_url = get_env_var("BASE_URL") or "https://api.openai.com/v1"
 api_key = get_env_var("LLM_API_KEY") or "no-llm-api-key-provided"
 aws_region = get_env_var("AWS_REGION") or "us-west-2"
+aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+aws_session_token = os.getenv("AWS_SESSION_TOKEN")
+profile_name = os.getenv("AWS_PROFILE")
 
 # Embedding Configuration
 embedding_model = get_env_var("EMBEDDING_MODEL") or "text-embedding-3-small"
@@ -54,19 +57,32 @@ if provider == "Anthropic":
     model = AnthropicModel(llm, provider=AnthropicProvider(api_key=api_key))
 elif provider == "Bedrock":
     # Initialize Bedrock client
-    session = None
-    if (os.getenv("AWS_AUTH_METHOD") == "profile" and os.getenv("AWS_PROFILE") is not None):
-        session = boto3.Session(
-            profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
-        )
+    # session = None
+    # if (
+    #     os.getenv("AWS_AUTH_METHOD") == "profile"
+    #     and os.getenv("AWS_PROFILE") is not None
+    # ):
+    #     session = boto3.Session(
+    #         profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
+    #     )
 
-    if (os.getenv("AWS_AUTH_METHOD") == "keys" and os.getenv("AWS_ACCESS_KEY_ID") is not None and os.getenv("AWS_SECRET_ACCESS_KEY") is not None):
-        session = boto3.Session(
-            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-            aws_session_token=os.getenv("AWS_SESSION_TOKEN"),
-            region_name=os.getenv("AWS_REGION")
-        )
+    # if (
+    #     os.getenv("AWS_AUTH_METHOD") == "keys"
+    #     and os.getenv("AWS_ACCESS_KEY_ID") is not None
+    #     and os.getenv("AWS_SECRET_ACCESS_KEY") is not None
+    # ):
+    #     session = boto3.Session(
+    #         aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+    #         aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+    #         aws_session_token=os.getenv("AWS_SESSION_TOKEN"),
+    #         region_name=os.getenv("AWS_REGION"),
+    #     )
+    session = boto3.Session(
+        aws_access_key_id,
+        aws_secret_access_key,
+        aws_session_token,
+        region_name=aws_region,
+    )
     bedrock_client = session.client("bedrock-runtime")
 
     model = BedrockConverseModel(

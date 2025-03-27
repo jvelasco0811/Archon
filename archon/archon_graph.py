@@ -42,6 +42,11 @@ logfire.configure(send_to_logfire="never")
 
 provider = get_env_var("LLM_PROVIDER") or "OpenAI"
 api_key = get_env_var("LLM_API_KEY") or "no-llm-api-key-provided"
+aws_region = get_env_var("AWS_REGION") or "us-west-2"
+aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+aws_session_token = os.getenv("AWS_SESSION_TOKEN")
+profile_name = os.getenv("AWS_PROFILE")
 
 is_anthropic = provider == "Anthropic"
 is_openai = provider == "OpenAI"
@@ -49,20 +54,32 @@ is_bedrock = provider == "Bedrock"
 
 if is_bedrock:
     # Initialize Bedrock client
-    session = None
-    if (os.getenv("AWS_AUTH_METHOD") == "profile" and os.getenv("AWS_PROFILE") is not None):
-        session = boto3.Session(
-            profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
-        )
+    # session = None
+    # if (
+    #     os.getenv("AWS_AUTH_METHOD") == "profile"
+    #     and os.getenv("AWS_PROFILE") is not None
+    # ):
+    #     session = boto3.Session(
+    #         profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
+    #     )
 
-    if (os.getenv("AWS_AUTH_METHOD") == "keys" and os.getenv("AWS_ACCESS_KEY_ID") is not None and os.getenv("AWS_SECRET_ACCESS_KEY") is not None):
-        session = boto3.Session(
-            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-            aws_session_token=os.getenv("AWS_SESSION_TOKEN"),
-            region_name=os.getenv("AWS_REGION")
-        )
-
+    # if (
+    #     os.getenv("AWS_AUTH_METHOD") == "keys"
+    #     and os.getenv("AWS_ACCESS_KEY_ID") is not None
+    #     and os.getenv("AWS_SECRET_ACCESS_KEY") is not None
+    # ):
+    #     session = boto3.Session(
+    #         aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+    #         aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+    #         aws_session_token=os.getenv("AWS_SESSION_TOKEN"),
+    #         region_name=os.getenv("AWS_REGION"),
+    #     )
+    session = boto3.Session(
+        aws_access_key_id,
+        aws_secret_access_key,
+        aws_session_token,
+        region_name=aws_region,
+    )
     bedrock_client = session.client("bedrock-runtime")
 
 reasoner_llm_model_name = get_env_var("REASONER_MODEL") or "o3-mini"
@@ -174,8 +191,7 @@ async def coder_agent(state: AgentState, writer):
     # Get the message history into the format for Pydantic AI
     message_history: list[ModelMessage] = []
     for message_row in state["messages"]:
-        message_history.extend(
-            ModelMessagesTypeAdapter.validate_json(message_row))
+        message_history.extend(ModelMessagesTypeAdapter.validate_json(message_row))
 
     prompt = (
         state["refined_prompt"]
@@ -254,8 +270,7 @@ async def refine_prompt(state: AgentState):
     # Get the message history into the format for Pydantic AI
     message_history: list[ModelMessage] = []
     for message_row in state["messages"]:
-        message_history.extend(
-            ModelMessagesTypeAdapter.validate_json(message_row))
+        message_history.extend(ModelMessagesTypeAdapter.validate_json(message_row))
 
     prompt = "Based on the current conversation, refine the prompt for the agent."
 
@@ -268,14 +283,12 @@ async def refine_prompt(state: AgentState):
 # Refines the tools for the AI agent
 async def refine_tools(state: AgentState):
     # Prepare dependencies
-    deps = ToolsRefinerDeps(
-        supabase=supabase, embedding_client=embedding_client)
+    deps = ToolsRefinerDeps(supabase=supabase, embedding_client=embedding_client)
 
     # Get the message history into the format for Pydantic AI
     message_history: list[ModelMessage] = []
     for message_row in state["messages"]:
-        message_history.extend(
-            ModelMessagesTypeAdapter.validate_json(message_row))
+        message_history.extend(ModelMessagesTypeAdapter.validate_json(message_row))
 
     prompt = "Based on the current conversation, refine the tools for the agent."
 
@@ -290,14 +303,12 @@ async def refine_tools(state: AgentState):
 # Refines the defintion for the AI agent
 async def refine_agent(state: AgentState):
     # Prepare dependencies
-    deps = AgentRefinerDeps(
-        supabase=supabase, embedding_client=embedding_client)
+    deps = AgentRefinerDeps(supabase=supabase, embedding_client=embedding_client)
 
     # Get the message history into the format for Pydantic AI
     message_history: list[ModelMessage] = []
     for message_row in state["messages"]:
-        message_history.extend(
-            ModelMessagesTypeAdapter.validate_json(message_row))
+        message_history.extend(ModelMessagesTypeAdapter.validate_json(message_row))
 
     prompt = "Based on the current conversation, refine the agent definition."
 
@@ -314,8 +325,7 @@ async def finish_conversation(state: AgentState, writer):
     # Get the message history into the format for Pydantic AI
     message_history: list[ModelMessage] = []
     for message_row in state["messages"]:
-        message_history.extend(
-            ModelMessagesTypeAdapter.validate_json(message_row))
+        message_history.extend(ModelMessagesTypeAdapter.validate_json(message_row))
 
     # Run the agent in a stream
     if not is_openai:
