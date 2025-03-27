@@ -17,7 +17,7 @@ import asyncio
 import httpx
 
 import json
-from typing import List
+from typing import List, Union
 from pydantic import BaseModel
 from pydantic_ai import Agent, ModelRetry, RunContext
 from pydantic_ai.models.anthropic import AnthropicModel
@@ -102,7 +102,9 @@ logfire.configure(send_to_logfire="if-token-present")
 @dataclass
 class AgentRefinerDeps:
     supabase: Client
-    embedding_client: AsyncOpenAI
+    embedding_client: Union[
+        AsyncOpenAI, BedrockRuntimeClient
+    ]  # Support both OpenAI and Bedrock clients
 
 
 agent_refiner_agent = Agent(
