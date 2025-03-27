@@ -46,9 +46,20 @@ if provider == "Anthropic":
 elif provider == "Bedrock":
     try:
         # Initialize Bedrock client
-        session = boto3.Session(
-            profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
-        )
+        session = None
+        if (os.getenv("AWS_AUTH_METHOD") == "profile" and os.getenv("AWS_PROFILE") is not None):
+            session = boto3.Session(
+                profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
+            )
+
+        if (os.getenv("AWS_AUTH_METHOD") == "keys" and os.getenv("AWS_ACCESS_KEY_ID") is not None and os.getenv("AWS_SECRET_ACCESS_KEY") is not None):
+            session = boto3.Session(
+                aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+                aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+                aws_session_token=os.getenv("AWS_SESSION_TOKEN"),
+                region_name=os.getenv("AWS_REGION")
+            )
+
         bedrock_client = session.client("bedrock-runtime")
 
         model = BedrockConverseModel(

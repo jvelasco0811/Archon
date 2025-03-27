@@ -1,3 +1,15 @@
+from utils.utils import get_env_var, get_clients
+from archon.agent_tools import list_documentation_pages_tool
+from archon.refiner_agents.agent_refiner_agent import (
+    agent_refiner_agent,
+    AgentRefinerDeps,
+)
+from archon.refiner_agents.tools_refiner_agent import (
+    tools_refiner_agent,
+    ToolsRefinerDeps,
+)
+from archon.refiner_agents.prompt_refiner_agent import prompt_refiner_agent
+from archon.pydantic_ai_coder import pydantic_ai_coder, PydanticAIDeps
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.models.bedrock import BedrockConverseModel
@@ -21,18 +33,6 @@ from pydantic_ai.messages import ModelMessage, ModelMessagesTypeAdapter
 
 # Add the parent directory to Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from archon.pydantic_ai_coder import pydantic_ai_coder, PydanticAIDeps
-from archon.refiner_agents.prompt_refiner_agent import prompt_refiner_agent
-from archon.refiner_agents.tools_refiner_agent import (
-    tools_refiner_agent,
-    ToolsRefinerDeps,
-)
-from archon.refiner_agents.agent_refiner_agent import (
-    agent_refiner_agent,
-    AgentRefinerDeps,
-)
-from archon.agent_tools import list_documentation_pages_tool
-from utils.utils import get_env_var, get_clients
 
 # Load environment variables
 load_dotenv()
@@ -49,9 +49,20 @@ is_bedrock = provider == "Bedrock"
 
 if is_bedrock:
     # Initialize Bedrock client
-    session = boto3.Session(
-        profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
-    )
+    session = None
+    if (os.getenv("AWS_AUTH_METHOD") == "profile" and os.getenv("AWS_PROFILE") is not None):
+        session = boto3.Session(
+            profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
+        )
+
+    if (os.getenv("AWS_AUTH_METHOD") == "keys" and os.getenv("AWS_ACCESS_KEY_ID") is not None and os.getenv("AWS_SECRET_ACCESS_KEY") is not None):
+        session = boto3.Session(
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+            aws_session_token=os.getenv("AWS_SESSION_TOKEN"),
+            region_name=os.getenv("AWS_REGION")
+        )
+
     bedrock_client = session.client("bedrock-runtime")
 
 reasoner_llm_model_name = get_env_var("REASONER_MODEL") or "o3-mini"
@@ -163,7 +174,8 @@ async def coder_agent(state: AgentState, writer):
     # Get the message history into the format for Pydantic AI
     message_history: list[ModelMessage] = []
     for message_row in state["messages"]:
-        message_history.extend(ModelMessagesTypeAdapter.validate_json(message_row))
+        message_history.extend(
+            ModelMessagesTypeAdapter.validate_json(message_row))
 
     prompt = (
         state["refined_prompt"]
@@ -242,7 +254,8 @@ async def refine_prompt(state: AgentState):
     # Get the message history into the format for Pydantic AI
     message_history: list[ModelMessage] = []
     for message_row in state["messages"]:
-        message_history.extend(ModelMessagesTypeAdapter.validate_json(message_row))
+        message_history.extend(
+            ModelMessagesTypeAdapter.validate_json(message_row))
 
     prompt = "Based on the current conversation, refine the prompt for the agent."
 
@@ -255,12 +268,14 @@ async def refine_prompt(state: AgentState):
 # Refines the tools for the AI agent
 async def refine_tools(state: AgentState):
     # Prepare dependencies
-    deps = ToolsRefinerDeps(supabase=supabase, embedding_client=embedding_client)
+    deps = ToolsRefinerDeps(
+        supabase=supabase, embedding_client=embedding_client)
 
     # Get the message history into the format for Pydantic AI
     message_history: list[ModelMessage] = []
     for message_row in state["messages"]:
-        message_history.extend(ModelMessagesTypeAdapter.validate_json(message_row))
+        message_history.extend(
+            ModelMessagesTypeAdapter.validate_json(message_row))
 
     prompt = "Based on the current conversation, refine the tools for the agent."
 
@@ -275,12 +290,14 @@ async def refine_tools(state: AgentState):
 # Refines the defintion for the AI agent
 async def refine_agent(state: AgentState):
     # Prepare dependencies
-    deps = AgentRefinerDeps(supabase=supabase, embedding_client=embedding_client)
+    deps = AgentRefinerDeps(
+        supabase=supabase, embedding_client=embedding_client)
 
     # Get the message history into the format for Pydantic AI
     message_history: list[ModelMessage] = []
     for message_row in state["messages"]:
-        message_history.extend(ModelMessagesTypeAdapter.validate_json(message_row))
+        message_history.extend(
+            ModelMessagesTypeAdapter.validate_json(message_row))
 
     prompt = "Based on the current conversation, refine the agent definition."
 
@@ -297,7 +314,8 @@ async def finish_conversation(state: AgentState, writer):
     # Get the message history into the format for Pydantic AI
     message_history: list[ModelMessage] = []
     for message_row in state["messages"]:
-        message_history.extend(ModelMessagesTypeAdapter.validate_json(message_row))
+        message_history.extend(
+            ModelMessagesTypeAdapter.validate_json(message_row))
 
     # Run the agent in a stream
     if not is_openai:

@@ -1,4 +1,11 @@
 from __future__ import annotations as _annotations
+from archon.agent_tools import (
+    retrieve_relevant_documentation_tool,
+    list_documentation_pages_tool,
+    get_page_content_tool,
+)
+from archon.agent_prompts import agent_refiner_prompt
+from utils.utils import get_env_var
 
 from dataclasses import dataclass
 import boto3
@@ -23,14 +30,8 @@ from pydantic_ai.providers.bedrock import BedrockProvider
 
 # Add the parent directory to sys.path to allow importing from the parent directory
 sys.path.append(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
-from utils.utils import get_env_var
-from archon.agent_prompts import agent_refiner_prompt
-from archon.agent_tools import (
-    retrieve_relevant_documentation_tool,
-    list_documentation_pages_tool,
-    get_page_content_tool,
+    os.path.dirname(os.path.dirname(
+        os.path.dirname(os.path.abspath(__file__))))
 )
 
 load_dotenv()
@@ -47,9 +48,19 @@ if provider == "Anthropic":
     model = AnthropicModel(llm, provider=AnthropicProvider(api_key=api_key))
 elif provider == "Bedrock":
     # Initialize Bedrock client
-    session = boto3.Session(
-        profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
-    )
+    session = None
+    if (os.getenv("AWS_AUTH_METHOD") == "profile" and os.getenv("AWS_PROFILE") is not None):
+        session = boto3.Session(
+            profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
+        )
+
+    if (os.getenv("AWS_AUTH_METHOD") == "keys" and os.getenv("AWS_ACCESS_KEY_ID") is not None and os.getenv("AWS_SECRET_ACCESS_KEY") is not None):
+        session = boto3.Session(
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+            aws_session_token=os.getenv("AWS_SESSION_TOKEN"),
+            region_name=os.getenv("AWS_REGION")
+        )
     bedrock_client = session.client("bedrock-runtime")
 
     model = BedrockConverseModel(

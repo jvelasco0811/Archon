@@ -1,3 +1,4 @@
+from utils.utils import get_env_var
 from typing import Dict, Any, List, Optional, Union
 from openai import AsyncOpenAI
 from supabase import Client
@@ -8,7 +9,6 @@ import boto3
 from mypy_boto3_bedrock_runtime import BedrockRuntimeClient
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.utils import get_env_var
 
 # Configuration constants
 embedding_model = get_env_var("EMBEDDING_MODEL") or "text-embedding-3-small"
@@ -32,9 +32,19 @@ async def get_bedrock_embedding(
     """
     try:
         # Initialize Bedrock client
-        session = boto3.Session(
-            profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
-        )
+        session = None
+        if (os.getenv("AWS_AUTH_METHOD") == "profile" and os.getenv("AWS_PROFILE") is not None):
+            session = boto3.Session(
+                profile_name=os.getenv("AWS_PROFILE"), region_name=os.getenv("AWS_REGION")
+            )
+
+        if (os.getenv("AWS_AUTH_METHOD") == "keys" and os.getenv("AWS_ACCESS_KEY_ID") is not None and os.getenv("AWS_SECRET_ACCESS_KEY") is not None):
+            session = boto3.Session(
+                aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+                aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+                aws_session_token=os.getenv("AWS_SESSION_TOKEN"),
+                region_name=os.getenv("AWS_REGION")
+            )
 
         bedrock_client = session.client("bedrock-runtime")
 
@@ -187,7 +197,8 @@ async def get_page_content_tool(supabase: Client, url: str) -> str:
             return f"No content found for URL: {url}"
 
         # Format the page with its title and all chunks
-        page_title = result.data[0]["title"].split(" - ")[0]  # Get the main title
+        page_title = result.data[0]["title"].split(
+            " - ")[0]  # Get the main title
         formatted_content = [f"# {page_title}\n"]
 
         # Add each chunk's content
